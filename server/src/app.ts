@@ -1,9 +1,10 @@
 import express from 'express';
+import ReactDOM from 'react-dom';
 
-const app = express();
-const port = 8080;
-
-app.get('/', (req, res) => { res.send('Hello Adele ;) sleep well! <3') });
-
-app.listen(port, () => { console.log(`Example app listening on port ${port}`) });
-
+export default function main(port: number) {
+    const app = express();
+    app.get('/', (req, res) => { res.send("hi") });
+    app.listen(port, () => { console.log(`Example app listening on port ${port}`) });
+    
+    
+}
