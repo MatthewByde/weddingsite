@@ -1,5 +1,4 @@
 import express from 'express';
-import ReactDOM from 'react-dom';
 
 export default function main(port: number) {
     const app = express();
