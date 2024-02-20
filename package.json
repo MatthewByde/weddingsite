@@ -2,6 +2,6 @@
   "scripts": {
     "dev": "(cd server && nodemon -e ts --exec \"tsc --build && node build/app.js\" &) && (cd client && npm run startclient &)",
     "build": "cd server && tsc --build && cd ../client && npm run buildclient && rm -rf ../server/static && mv build ../server/static && git checkout -b deploy && git add ../server/static && git add ../server/build && git commit -m \"deploy\" && git push --force --set-upstream origin deploy && git checkout - && git branch -D deploy",
-    "server": "git checkout deploy && git reset --hard origin/deploy && node server/build/app.js"
+    "server": "git fetch && git checkout deploy && git reset --hard origin/deploy && node server/build/app.js"
   }
 }
