@@ -1,7 +1,7 @@
 
 export default function App() {
   return (
-    <span>hi</span>
+    <span>Hello dad</span>
   );
 }
 

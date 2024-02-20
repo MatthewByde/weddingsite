@@ -1,8 +1,9 @@
 import express from 'express';
 
-export default function main(port: number) {
+export default function main() {
+    const port = 8080;
     const app = express();
-    app.get('/', (_, res) => { res.send("hi") });
+    app.use(express.static('static'));
     app.listen(port, () => { console.log(`Example app listening on port ${port}`) });
     
     
