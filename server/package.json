@@ -4,8 +4,7 @@
   "type": "module",
   "main": "src/app.ts",
   "scripts": {
-    "local": "node build/runlocal.js",
-    "server": "node build/runremote.js"
+
   },
   "dependencies": {
     "express": "^4.18.2",
