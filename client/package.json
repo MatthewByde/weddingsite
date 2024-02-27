@@ -43,6 +43,7 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/node": "^20.11.20",
     "@types/react": "^18.2.60",
-    "@types/react-dom": "^18.2.19"
+    "@types/react-dom": "^18.2.19",
+    "file-loader": "^6.2.0"
   }
 }
