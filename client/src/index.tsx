@@ -1,8 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import Router from './Router';
 import Theme from './Theme';
-import './tailwind.css';
+import './index.css';
+import App from './App';
 
 const root = ReactDOM.createRoot(
 	document.getElementById('root') as HTMLElement
@@ -11,7 +11,7 @@ const root = ReactDOM.createRoot(
 root.render(
 	<React.StrictMode>
 		<Theme>
-			<Router />
+			<App />
 		</Theme>
 	</React.StrictMode>
 );

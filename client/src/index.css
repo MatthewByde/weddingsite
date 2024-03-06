@@ -1,0 +1,8 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@font-face {
+	font-family: 'argue';
+	src: local('argue'), url(./assets/argue.otf) format('opentype');
+}
