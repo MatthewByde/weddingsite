@@ -7,7 +7,7 @@ export default function Homepage() {
 			<div className='w-full box-border flex items-center max-w-max h-auto'>
 				{
 					<img
-						alt="A collage showind Adele and Matthew's engagement, graduation, and fun at Lickey Hills."
+						alt="A collage showing Adele and Matthew's engagement, graduation, and fun at Lickey Hills."
 						src={banner}></img>
 				}
 			</div>
