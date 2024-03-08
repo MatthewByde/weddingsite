@@ -1,12 +1,13 @@
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import Home from './routes/Home';
+import RSVP from './routes/RSVP';
 
 export const routes = [
 	{
 		path: '/',
 		element: <Home></Home>,
 	},
-	{ path: '/rsvp', element: <Home></Home> },
+	{ path: '/rsvp', element: <RSVP></RSVP> },
 ];
 
 export default function Router() {
