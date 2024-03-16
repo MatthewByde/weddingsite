@@ -1,30 +1,8 @@
 import { Button, Label, Textarea, TextInput } from 'flowbite-react';
-import React from 'react';
 import { Link } from 'react-router-dom';
 import * as Icons from 'react-icons/hi2';
 
-// type SendEmailRequestBody = {
-// 	name: string;
-// 	email: string;
-// 	message: string;
-// 	subject: string;
-// };
-
 export default function Contact() {
-	// fetch('/api/sendemail', {
-	// 	method: 'POST',
-	// 	headers: {
-	// 		Accept: 'application/json',
-	// 		'Content-Type': 'application/json',
-	// 	},
-	// 	body: JSON.stringify({
-	// 		email: 'matthew@bydemusic.co.uk',
-	// 		name: 'Matthew Byde',
-	// 		message:
-	// 			'Hi\n\n, this is a test message.\nInsincerely regardless,\n\nMatthew',
-	// 		subject: 'Test',
-	// 	} as SendEmailRequestBody),
-	// });
 	return (
 		<section>
 			<h1>Contact us</h1>
@@ -40,7 +18,7 @@ export default function Contact() {
 			<p>Or by filling out the form below.</p>
 			<form
 				method='POST'
-				enctype='application/x-www-form-urlencoded'
+				encType='application/x-www-form-urlencoded'
 				action='/api/sendemail'>
 				<Label
 					htmlFor='name'

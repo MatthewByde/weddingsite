@@ -43,7 +43,7 @@ function ContactFormEmail({ from, subject, content, userEmail, }) {
                         React.createElement(Link, { href: 'https://matthewandadelewedding.co.uk', target: '_blank' },
                             React.createElement(Img, { src: "./assets/banner.png", width: '75', height: '45', alt: 'Matthew and adele wedding banner' }))),
                     React.createElement(Section, { style: upperSection },
-                        React.createElement(Heading, { style: h1 }, `Contact form submission`),
+                        React.createElement(Heading, { style: h1 }, `Contact form submission: ${subject}`),
                         React.createElement(Text, { style: mainText }, content.split(/\r\n|\r|\n/).map(e => {
                             return React.createElement(React.Fragment, null,
                                 e,

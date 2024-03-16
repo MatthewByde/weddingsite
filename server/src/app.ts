@@ -13,12 +13,14 @@ export default function main() {
 	const app = express();
 	app.use(express.static('../static'));
 	app.listen(port, () => {
-		console.log(`Example app listening on port ${port}`);
+		console.log(
+			`matthewandadelewedding.co.uk server listening on port ${port}`
+		);
 	});
 	app.use(express.json());
+	app.use(express.urlencoded({ extended: true }));
 	app.post('/api/sendemail', async (req, res) => {
 		const body = req.body as SendEmailRequestBody;
-		console.log(body);
 		try {
 			const result = await sendContactFormEmail(
 				body.message,

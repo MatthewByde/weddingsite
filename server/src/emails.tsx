@@ -112,7 +112,7 @@ function ContactFormEmail({
 							</Link>
 						</Section> 
 						<Section style={upperSection}>
-							<Heading style={h1}>{`Contact form submission`}</Heading>
+							<Heading style={h1}>{`Contact form submission: ${subject}`}</Heading>
 							<Text style={mainText}>{content.split(/\r\n|\r|\n/).map(e=>{
 								return <>{e}<br/></>;
 							})}</Text>
