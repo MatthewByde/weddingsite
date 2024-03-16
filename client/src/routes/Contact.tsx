@@ -25,7 +25,6 @@ export default function Contact() {
 	// 		subject: 'Test',
 	// 	} as SendEmailRequestBody),
 	// });
-	const onSubmit = React.useCallback(() => {}, []);
 	return (
 		<section>
 			<h1>Contact us</h1>
@@ -40,8 +39,9 @@ export default function Contact() {
 			<p>matthewandadelewedding@gmail.com</p>
 			<p>Or by filling out the form below.</p>
 			<form
-				id='contact-form'
-				onSubmit={onSubmit}>
+				method='POST'
+				enctype='application/x-www-form-urlencoded'
+				action='/api/sendemail'>
 				<Label
 					htmlFor='name'
 					value='Full name'
@@ -49,16 +49,27 @@ export default function Contact() {
 				<TextInput
 					placeholder='Joe Bloggs'
 					required
+					name={'name'}
 				/>
 				<Label
 					htmlFor='email'
 					value='Email'
 				/>
 				<TextInput
+					name={'email'}
 					type='email'
 					icon={Icons.HiEnvelope}
 					placeholder='name@domain.com'
 					required
+				/>
+				<Label
+					htmlFor='subject'
+					value='Subject'
+				/>
+				<TextInput
+					placeholder='Subject...'
+					required
+					name={'subject'}
 				/>
 				<Label
 					htmlFor='message'
@@ -66,6 +77,7 @@ export default function Contact() {
 					Message
 				</Label>
 				<Textarea
+					name={'message'}
 					required
 					rows={10}
 					placeholder='Write your message here'></Textarea>
