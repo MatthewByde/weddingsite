@@ -1,51 +1,52 @@
 {
-  "name": "client",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "autoprefixer": "^10.4.17",
-    "dayjs": "^1.11.10",
-    "flowbite-react": "^0.7.2",
-    "postcss": "^8.4.35",
-    "postcss-cli": "^11.0.0",
-    "react": "^18.2.0",
-    "react-div-100vh": "^0.7.0",
-    "react-dom": "^18.2.0",
-    "react-icons": "^5.0.1",
-    "react-router-dom": "^6.22.1",
-    "react-scripts": "5.0.1",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^4.9.5",
-    "web-vitals": "^2.1.4"
-  },
-  "scripts": {
-    "startclient": "react-scripts start",
-    "buildclient": "react-scripts build",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "@types/node": "^20.11.20",
-    "@types/react": "^18.2.60",
-    "@types/react-dom": "^18.2.19",
-    "file-loader": "^6.2.0"
-  }
+	"name": "client",
+	"version": "0.1.0",
+	"proxy": "http://127.0.0.1:8080",
+	"private": true,
+	"dependencies": {
+		"autoprefixer": "^10.4.17",
+		"dayjs": "^1.11.10",
+		"flowbite-react": "^0.7.2",
+		"postcss": "^8.4.35",
+		"postcss-cli": "^11.0.0",
+		"react": "^18.2.0",
+		"react-div-100vh": "^0.7.0",
+		"react-dom": "^18.2.0",
+		"react-icons": "^5.0.1",
+		"react-router-dom": "^6.22.1",
+		"react-scripts": "5.0.1",
+		"tailwindcss": "^3.4.1",
+		"typescript": "^4.9.5",
+		"web-vitals": "^2.1.4"
+	},
+	"scripts": {
+		"startclient": "react-scripts start",
+		"buildclient": "react-scripts build",
+		"eject": "react-scripts eject"
+	},
+	"eslintConfig": {
+		"extends": [
+			"react-app",
+			"react-app/jest"
+		]
+	},
+	"browserslist": {
+		"production": [
+			">0.2%",
+			"not dead",
+			"not op_mini all"
+		],
+		"development": [
+			"last 1 chrome version",
+			"last 1 firefox version",
+			"last 1 safari version"
+		]
+	},
+	"devDependencies": {
+		"@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+		"@types/node": "^20.11.20",
+		"@types/react": "^18.2.60",
+		"@types/react-dom": "^18.2.19",
+		"file-loader": "^6.2.0"
+	}
 }

@@ -1,1 +1,9 @@
-export default function Travel() {}
+import PageWrapper from '../PageWrapper';
+
+export default function Travel() {
+	return (
+		<PageWrapper>
+			<h1>Coming soon!</h1>
+		</PageWrapper>
+	);
+}

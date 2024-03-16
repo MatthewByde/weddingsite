@@ -17,7 +17,6 @@ export default function PageWrapper({
 	children?: React.ReactNode;
 }) {
 	const [timer, setTimer] = React.useState<string>('');
-
 	setInterval(() => {
 		const secondDiff = WEDDING_DATE.diff(dayjs(), 'seconds');
 		const minuteDiff = Math.floor(secondDiff / 60);
