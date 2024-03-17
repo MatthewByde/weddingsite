@@ -7,9 +7,10 @@ import { Link } from 'react-router-dom';
 import { use100vh } from 'react-div-100vh';
 import Divider from './lib/Divider';
 import dayjs from 'dayjs';
+
 const HEADER_SIZE = '80px';
 
-const WEDDING_DATE = dayjs('2024-11-09T12:15:00Z');
+const WEDDING_DATE = dayjs('2024-11-09T12:00:00Z');
 
 export default function PageWrapper({
 	children,
@@ -76,11 +77,15 @@ export default function PageWrapper({
 				</div>
 				<Divider orientation='vertical' />
 				<div
-					className='h-full bg-fit w-full'
-					style={{ backgroundImage: `url(${bg})` }}>
+					className='h-full bg-fit'
+					style={{
+						backgroundImage: `url(${bg})`,
+						width: `calc(100% - ${navCollapsed ? '4rem' : '12rem'}`,
+					}}>
 					<main
-						className='w-full pt-2 max-h-fit'
+						className='w-full max-h-fit'
 						style={{
+							overflowWrap: 'anywhere',
 							minHeight: `calc(${
 								fullvh ? `${fullvh}px` : '100vh'
 							} - ${HEADER_SIZE})`,
@@ -111,7 +116,6 @@ function NavBar({
 			aria-label='Navigation sidebar'>
 			<Sidebar.Items>
 				<Button
-					className='border-0'
 					onClick={() => {
 						setCollapsed((c) => !c);
 					}}>
@@ -144,7 +148,7 @@ function NavBar({
 						Travel
 					</Sidebar.Item>
 					<Sidebar.Item
-						to='/faqs'
+						to='/faq'
 						icon={Icons.HiQuestionMarkCircle}
 						as={Link}>
 						FAQs

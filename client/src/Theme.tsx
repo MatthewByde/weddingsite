@@ -19,7 +19,7 @@ export const customTheme: CustomFlowbiteTheme = {
 		},
 
 		item: {
-			base: 'flex items-center justify-center rounded-lg p-2 text-base font-normal text-backgroundColor hover:bg-darkAccentColor',
+			base: 'flex items-center justify-center rounded-lg p-2 text-base font-normal text-backgroundColor hover:bg-darkAccentColor transition',
 			active: 'bg-gray-100',
 			collapsed: {
 				insideCollapse: 'group w-full pl-8 transition duration-75',
@@ -40,6 +40,6 @@ export const customTheme: CustomFlowbiteTheme = {
 		},
 	},
 	button: {
-		base: 'px-0 py-0 justify-center items-center rounded-lg border-0 text-backgroundColor hover:bg-darkAccentColor flex [&_span]:px-2 [&_span]:py-2',
+		base: 'border-0 px-0 py-0 justify-center items-center rounded-lg border-0 text-backgroundColor hover:bg-darkAccentColor flex [&_span]:px-2 [&_span]:py-2 transition',
 	},
 };

@@ -10,6 +10,16 @@ const transporter = nodemailer.createTransport({
     },
 });
 export async function sendContactFormEmail(message, subject, fromName, userEmail) {
+    message = message.slice(0, 10000);
+    subject = subject.slice(0, 255);
+    fromName = fromName.slice(0, 255);
+    const [localPart, domainPart] = userEmail.split('@', 1);
+    if (localPart && domainPart) {
+        userEmail = `${localPart.slice(0, 64)}@${domainPart.slice(0, 255)}`;
+    }
+    else {
+        userEmail = userEmail.slice(0, 64);
+    }
     const email = createContactFormEmail(message, fromName, subject, userEmail);
     return await sendEmail(email.plain, email.html, subject, fromName, emailInfo.contactFormToEmail, userEmail);
 }

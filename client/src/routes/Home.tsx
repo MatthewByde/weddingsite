@@ -4,7 +4,7 @@ import banner from '../assets/banner.png';
 export default function Homepage() {
 	return (
 		<PageWrapper>
-			<div className='w-full box-border flex items-center max-w-max h-auto'>
+			<div className='w-full box-border flex items-center max-w-max h-auto pt-2'>
 				{
 					<img
 						alt="A collage showing Adele and Matthew's engagement, graduation, and fun at Lickey Hills."

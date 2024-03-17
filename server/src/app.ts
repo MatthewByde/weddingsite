@@ -18,9 +18,25 @@ export default function main() {
 		);
 	});
 	app.use(express.json());
-	app.use(express.urlencoded({ extended: true }));
+
+	sendemailSetupHandler(app);
+}
+
+async function sendemailSetupHandler(app: express.Express) {
+	const DUPE_TIMEOUT_SUCCESS = 300000; //ms
+	const DUPE_TIMEOUT_FAIL = 5000;
+	const contactFormRequests: { [body: string]: number } = {};
 	app.post('/api/sendemail', async (req, res) => {
+		const time = new Date().getTime();
 		const body = req.body as SendEmailRequestBody;
+		if (
+			contactFormRequests[JSON.stringify(body)] &&
+			time - contactFormRequests[JSON.stringify(body)] < DUPE_TIMEOUT_SUCCESS
+		) {
+			res.status(400).json({ message: 'duplicate request, try again later.' });
+			return;
+		}
+		contactFormRequests[JSON.stringify(body)] = time;
 		try {
 			const result = await sendContactFormEmail(
 				body.message,
@@ -30,6 +46,8 @@ export default function main() {
 			);
 			res.status(200).json(result);
 		} catch (e) {
+			contactFormRequests[JSON.stringify(body)] =
+				time - DUPE_TIMEOUT_SUCCESS + DUPE_TIMEOUT_FAIL;
 			console.log(e);
 			res.status(500).json(JSON.stringify(e));
 		}
