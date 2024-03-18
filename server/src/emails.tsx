@@ -1,4 +1,4 @@
-import emailInfo from './confidential.json' with { type: "json" }; 
+import emailInfo from './confidential.json' with {type: 'json'};
 import nodemailer from 'nodemailer';
 import React from 'react';
 import {
@@ -15,17 +15,19 @@ import {
 	Text,
 	render,
 } from '@react-email/components';
+import { imageData } from './emailBannerData.js';
+import Mail from 'nodemailer/lib/mailer';
 
 const transporter = nodemailer.createTransport({
 	service: 'gmail',
 	auth: {
 		user: emailInfo.gmailLogin.email,
-		pass: emailInfo.gmailLogin.password
+		pass: emailInfo.gmailLogin.password,
 	},
 });
 
-export async function sendContactFormEmail( 
-	message: string, 
+export async function sendContactFormEmail(
+	message: string,
 	subject: string,
 	fromName: string,
 	userEmail: string
@@ -34,13 +36,21 @@ export async function sendContactFormEmail(
 	subject = subject.slice(0, 255);
 	fromName = fromName.slice(0, 255);
 	const [localPart, domainPart] = userEmail.split('@', 1);
-			if (localPart && domainPart) {
-				userEmail = `${localPart.slice(0, 64)}@${domainPart.slice(0, 255)}`;
-			} else {
-				userEmail = userEmail.slice(0, 64);
-			}
+	if (localPart && domainPart) {
+		userEmail = `${localPart.slice(0, 64)}@${domainPart.slice(0, 255)}`;
+	} else {
+		userEmail = userEmail.slice(0, 64);
+	}
 	const email = createContactFormEmail(message, fromName, subject, userEmail);
-	return await sendEmail(email.plain, email.html, subject, fromName, emailInfo.contactFormToEmail, userEmail); 
+	return await sendEmail(
+		email.plain,
+		email.html,
+		subject,
+		fromName,
+		emailInfo.contactFormToEmail,
+		[{cid: 'image', filename: 'image.png', content: Buffer.from(imageData, 'base64')}],
+		userEmail
+	);
 }
 
 async function sendEmail(
@@ -49,9 +59,11 @@ async function sendEmail(
 	subject: string,
 	fromName: string,
 	to: string | string[],
-	replyTo?: string | string[]
+	attachments?: Mail.Attachment[],
+	replyTo?: string | string[],
+
 ) {
-	const result = await transporter.sendMail({
+	return await transporter.sendMail({
 		disableFileAccess: true,
 		disableUrlAccess: true,
 		from: { address: emailInfo.gmailLogin.email, name: fromName },
@@ -59,9 +71,9 @@ async function sendEmail(
 		text,
 		subject,
 		html,
-		replyTo
+		replyTo,
+		attachments
 	});
-	return result;
 }
 
 function createContactFormEmail(
@@ -113,18 +125,26 @@ function ContactFormEmail({
 								href='https://matthewandadelewedding.co.uk'
 								target='_blank'>
 								<Img
-									src={"./assets/banner.png"}
-									width='75'
-									height='45'
+									src={'cid:image'}
 									alt='Matthew and adele wedding banner'
+									width='100%'
+									className='m-0 border-0 p-0 block'
 								/>
 							</Link>
-						</Section> 
+						</Section>
 						<Section style={upperSection}>
-							<Heading style={h1}>{`Contact form submission: ${subject}`}</Heading>
-							<Text style={mainText}>{content.split(/\r\n|\r|\n/).map(e=>{
-								return <>{e}<br/></>;
-							})}</Text>
+							<Heading
+								style={h1}>{`Contact form submission: ${subject}`}</Heading>
+							<Text style={mainText}>
+								{content.split(/\r\n|\r|\n/).map((e) => {
+									return (
+										<>
+											{e}
+											<br />
+										</>
+									);
+								})}
+							</Text>
 						</Section>
 						<Hr />
 						<Section style={lowerSection}>
@@ -134,19 +154,21 @@ function ContactFormEmail({
 						</Section>
 					</Section>
 					<Text style={footerText}>
-						{"This message was produced by "}
+						{'This message was produced by '}
 						<Link
 							href='https://matthewandadelewedding.co.uk'
 							target='_blank'
 							style={link}>
 							matthewandadelewedding.co.uk
 						</Link>
-						{" at request of a user, and may contain confidential information. If you have received this email in error, please delete it, then "}
+						{
+							' at request of a user, and may contain confidential information. If you have received this email in error, please delete it, then '
+						}
 						<Link
 							href='https://matthewandadelewedding.co.uk/contact'
 							target='_blank'
 							style={link}>
-							contact us 
+							contact us
 						</Link>
 						.
 					</Text>
@@ -165,6 +187,7 @@ const container = {
 	padding: '20px',
 	margin: '0 auto',
 	backgroundColor: '#eee',
+	width: 'min-content',
 };
 
 const h1 = {
@@ -195,7 +218,7 @@ const text = {
 const imageSection = {
 	backgroundColor: '#E9EDEA',
 	display: 'flex',
-	padding: '20px 0',
+	paddingTop: '20px',
 	alignItems: 'center',
 	justifyContent: 'center',
 };
