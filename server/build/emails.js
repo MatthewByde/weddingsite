@@ -1,12 +1,13 @@
-import emailInfo from './confidential.json' with { type: "json" };
+import emailInfo from './confidential.json' with { type: 'json' };
 import nodemailer from 'nodemailer';
 import React from 'react';
 import { Body, Container, Head, Heading, Hr, Html, Img, Link, Preview, Section, Text, render, } from '@react-email/components';
+import { imageData } from './emailBannerData.js';
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: emailInfo.gmailLogin.email,
-        pass: emailInfo.gmailLogin.password
+        pass: emailInfo.gmailLogin.password,
     },
 });
 export async function sendContactFormEmail(message, subject, fromName, userEmail) {
@@ -21,10 +22,10 @@ export async function sendContactFormEmail(message, subject, fromName, userEmail
         userEmail = userEmail.slice(0, 64);
     }
     const email = createContactFormEmail(message, fromName, subject, userEmail);
-    return await sendEmail(email.plain, email.html, subject, fromName, emailInfo.contactFormToEmail, userEmail);
+    return await sendEmail(email.plain, email.html, subject, fromName, emailInfo.contactFormToEmail, [{ cid: 'image', filename: 'image.png', content: Buffer.from(imageData, 'base64') }], userEmail);
 }
-async function sendEmail(text, html, subject, fromName, to, replyTo) {
-    const result = await transporter.sendMail({
+async function sendEmail(text, html, subject, fromName, to, attachments, replyTo) {
+    return await transporter.sendMail({
         disableFileAccess: true,
         disableUrlAccess: true,
         from: { address: emailInfo.gmailLogin.email, name: fromName },
@@ -32,9 +33,9 @@ async function sendEmail(text, html, subject, fromName, to, replyTo) {
         text,
         subject,
         html,
-        replyTo
+        replyTo,
+        attachments
     });
-    return result;
 }
 function createContactFormEmail(emailContent, emailFrom, emailSubject, userEmail) {
     return {
@@ -51,21 +52,21 @@ function ContactFormEmail({ from, subject, content, userEmail, }) {
                 React.createElement(Section, { style: coverSection },
                     React.createElement(Section, { style: imageSection },
                         React.createElement(Link, { href: 'https://matthewandadelewedding.co.uk', target: '_blank' },
-                            React.createElement(Img, { src: "./assets/banner.png", width: '75', height: '45', alt: 'Matthew and adele wedding banner' }))),
+                            React.createElement(Img, { src: 'cid:image', alt: 'Matthew and adele wedding banner', width: '100%', className: 'm-0 border-0 p-0 block' }))),
                     React.createElement(Section, { style: upperSection },
                         React.createElement(Heading, { style: h1 }, `Contact form submission: ${subject}`),
-                        React.createElement(Text, { style: mainText }, content.split(/\r\n|\r|\n/).map(e => {
-                            return React.createElement(React.Fragment, null,
+                        React.createElement(Text, { style: mainText }, content.split(/\r\n|\r|\n/).map((e) => {
+                            return (React.createElement(React.Fragment, null,
                                 e,
-                                React.createElement("br", null));
+                                React.createElement("br", null)));
                         }))),
                     React.createElement(Hr, null),
                     React.createElement(Section, { style: lowerSection },
                         React.createElement(Text, { style: cautionText }, `The above message was sent by ${from} <${userEmail}> at ${new Date().toISOString()}.`))),
                 React.createElement(Text, { style: footerText },
-                    "This message was produced by ",
+                    'This message was produced by ',
                     React.createElement(Link, { href: 'https://matthewandadelewedding.co.uk', target: '_blank', style: link }, "matthewandadelewedding.co.uk"),
-                    " at request of a user, and may contain confidential information. If you have received this email in error, please delete it, then ",
+                    ' at request of a user, and may contain confidential information. If you have received this email in error, please delete it, then ',
                     React.createElement(Link, { href: 'https://matthewandadelewedding.co.uk/contact', target: '_blank', style: link }, "contact us"),
                     ".")))));
 }
@@ -77,6 +78,7 @@ const container = {
     padding: '20px',
     margin: '0 auto',
     backgroundColor: '#eee',
+    width: 'min-content',
 };
 const h1 = {
     color: '#333',
@@ -100,7 +102,7 @@ const text = {
 const imageSection = {
     backgroundColor: '#E9EDEA',
     display: 'flex',
-    padding: '20px 0',
+    paddingTop: '20px',
     alignItems: 'center',
     justifyContent: 'center',
 };
