@@ -39,7 +39,7 @@ export default function Contact() {
 		setEmailRequestBody((c) => {
 			const body = { ...c };
 			body.message = body.message.slice(0, 10000);
-			body.name = body.name.slice(0, 255);
+			body.name = body.name.slice(0, 50);
 			body.subject = body.subject.slice(0, 255);
 			const [localPart, domainPart] = body.email.split('@', 1);
 			if (localPart && domainPart) {
