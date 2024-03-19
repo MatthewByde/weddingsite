@@ -34,7 +34,7 @@ export async function sendContactFormEmail(
 ) {
 	message = message.slice(0, 10000);
 	subject = subject.slice(0, 255);
-	fromName = fromName.slice(0, 255);
+	fromName = fromName.slice(0, 50);
 	const [localPart, domainPart] = userEmail.split('@', 1);
 	if (localPart && domainPart) {
 		userEmail = `${localPart.slice(0, 64)}@${domainPart.slice(0, 255)}`;
