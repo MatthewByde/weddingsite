@@ -17,6 +17,8 @@ export const routes = [
 	{ path: '/faq', element: <FAQ></FAQ> },
 	{ path: '/login', element: <Login></Login> },
 	{ path: '/about', element: <About></About> },
+	{ path: '/photos', element: <Photos></Photos> },
+	{ path: '/livestream', element: <Livestream></Livestream> },
 ];
 
 export default function Router() {
