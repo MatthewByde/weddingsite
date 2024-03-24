@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import Theme from './Theme';
 import './index.css';
 import App from './App';
 
@@ -10,8 +9,6 @@ const root = ReactDOM.createRoot(
 
 root.render(
 	<React.StrictMode>
-		<Theme>
-			<App />
-		</Theme>
+		<App />
 	</React.StrictMode>
 );
