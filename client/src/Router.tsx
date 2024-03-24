@@ -5,6 +5,7 @@ import Contact from './routes/Contact';
 import GiftList from './routes/GiftList';
 import FAQ from './routes/FAQ';
 import Travel from './routes/Travel';
+import Login from './routes/Login';
 
 export const routes = [
 	{
@@ -16,6 +17,7 @@ export const routes = [
 	{ path: '/registry', element: <GiftList></GiftList> },
 	{ path: '/travel', element: <Travel></Travel> },
 	{ path: '/faq', element: <FAQ></FAQ> },
+	{ path: '/login', element: <Login></Login> },
 ];
 
 export default function Router() {
