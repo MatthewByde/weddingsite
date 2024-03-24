@@ -1,5 +1,6 @@
 import React from 'react';
 import Router from './Router';
+import Theme from './Theme';
 
 export const AdminKeyContext = React.createContext<{
 	key: string | null;
@@ -38,7 +39,9 @@ export default function App() {
 			value={{ width: width, isMobile: width < 768 }}>
 			<NavCollapsedContext.Provider value={{ navCollapsed, setNavCollapsed }}>
 				<AdminKeyContext.Provider value={{ key, setKey }}>
-					<Router />
+					<Theme>
+						<Router />
+					</Theme>
 				</AdminKeyContext.Provider>
 			</NavCollapsedContext.Provider>
 		</WindowWidthContext.Provider>

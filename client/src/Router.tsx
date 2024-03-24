@@ -6,18 +6,17 @@ import GiftList from './routes/GiftList';
 import FAQ from './routes/FAQ';
 import Travel from './routes/Travel';
 import Login from './routes/Login';
+import About from './routes/About';
 
 export const routes = [
-	{
-		path: '/',
-		element: <Home></Home>,
-	},
+	{ path: '/', element: <Home></Home> },
 	{ path: '/rsvp', element: <RSVP></RSVP> },
 	{ path: '/contact', element: <Contact></Contact> },
 	{ path: '/registry', element: <GiftList></GiftList> },
 	{ path: '/travel', element: <Travel></Travel> },
 	{ path: '/faq', element: <FAQ></FAQ> },
 	{ path: '/login', element: <Login></Login> },
+	{ path: '/about', element: <About></About> },
 ];
 
 export default function Router() {
