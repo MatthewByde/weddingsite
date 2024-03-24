@@ -1,4 +1,4 @@
-import emailInfo from './confidential.json' with {type: 'json'};
+import emailInfo from './assets/confidential.json' with {type: 'json'};
 import nodemailer from 'nodemailer';
 import React from 'react';
 import {
@@ -17,6 +17,7 @@ import {
 } from '@react-email/components';
 import { imageData } from './emailBannerData.js';
 import Mail from 'nodemailer/lib/mailer';
+import { EMAILDOMAIN_MAXCHARS, EMAILLOCAL_MAXCHARS, CONTACT_MESSAGE_MAXCHARS, CONTACT_NAME_MAXCHARS, CONTACT_SUBJECT_MAXCHARS } from './constants.js';
 
 const transporter = nodemailer.createTransport({
 	service: 'gmail',
@@ -32,14 +33,14 @@ export async function sendContactFormEmail(
 	fromName: string,
 	userEmail: string
 ) {
-	message = message.slice(0, 10000);
-	subject = subject.slice(0, 255);
-	fromName = fromName.slice(0, 50);
+	message = message.slice(0, CONTACT_MESSAGE_MAXCHARS);
+	subject = subject.slice(0, CONTACT_SUBJECT_MAXCHARS);
+	fromName = fromName.slice(0, CONTACT_NAME_MAXCHARS);
 	const [localPart, domainPart] = userEmail.split('@', 1);
 	if (localPart && domainPart) {
-		userEmail = `${localPart.slice(0, 64)}@${domainPart.slice(0, 255)}`;
+		userEmail = `${localPart.slice(0, EMAILLOCAL_MAXCHARS)}@${domainPart.slice(0, EMAILDOMAIN_MAXCHARS)}`;
 	} else {
-		userEmail = userEmail.slice(0, 64);
+		userEmail = userEmail.slice(0, EMAILLOCAL_MAXCHARS);
 	}
 	const email = createContactFormEmail(message, fromName, subject, userEmail);
 	return await sendEmail(

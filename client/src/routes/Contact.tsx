@@ -1,24 +1,13 @@
-import {
-	Button,
-	Label,
-	Spinner,
-	Textarea,
-	TextInput,
-	Toast,
-} from 'flowbite-react';
+import { Label, Textarea, TextInput } from 'flowbite-react';
 import { Link } from 'react-router-dom';
-import * as Icons from 'react-icons/hi2';
 import PageWrapper from '../PageWrapper';
-import { FormEvent } from 'react';
 import React from 'react';
-import { FaTelegramPlane } from 'react-icons/fa';
-
-type SendEmailRequestBody = {
-	name: string;
-	email: string;
-	message: string;
-	subject: string;
-};
+import {
+	SendEmailRequestBody,
+	SendEmailRequestResponse,
+} from '../../../server/src/constants';
+import { HiEnvelope } from 'react-icons/hi2';
+import Form from '../lib/Form';
 
 const defaultEmailRequestBody: SendEmailRequestBody = {
 	name: '',
@@ -31,7 +20,6 @@ export default function Contact() {
 	const [toastType, setToastType] = React.useState<
 		'success' | 'error' | 'none'
 	>('none');
-	const [sending, setSending] = React.useState(false);
 	const [toastText, setToastText] = React.useState('Unknown error');
 	const [emailRequestBody, setEmailRequestBody] =
 		React.useState<SendEmailRequestBody>(defaultEmailRequestBody);
@@ -50,41 +38,34 @@ export default function Contact() {
 			return body;
 		});
 	}, [emailRequestBody]);
-	const onSubmit = React.useCallback(
-		(event: FormEvent) => {
-			event.preventDefault();
-			setSending(true);
-			fetch('/api/sendemail', {
+	const onSubmit = React.useCallback(async () => {
+		try {
+			const response = await fetch('/api/sendemail', {
 				method: 'POST',
 				body: JSON.stringify(emailRequestBody),
 				headers: {
 					Accept: 'application/json',
 					'Content-Type': 'application/json',
 				},
-			})
-				.then(async (response) => {
-					if (response.ok) {
-						setEmailRequestBody(defaultEmailRequestBody);
-					}
-					setToastText(
-						response.ok
-							? 'Message sent successfully'
-							: `Error ${response.status}: ${response.statusText} - ${
-									(await response.json())?.message ?? 'unknown cause'
-							  }`
-					);
-					setToastType(response.ok ? 'success' : 'error');
-					setSending(false);
-				})
-				.catch((error) => {
-					console.error(error);
-					setToastText('Network error: could not connect to the server.');
-					setToastType('error');
-					setSending(false);
-				});
-		},
-		[emailRequestBody]
-	);
+			});
+			const body = (await response.json()) as SendEmailRequestResponse;
+			if (response.ok) {
+				setEmailRequestBody(defaultEmailRequestBody);
+			}
+			setToastText(
+				response.ok
+					? 'Message sent successfully'
+					: `Error ${response.status}: ${response.statusText} - ${
+							'errorMessage' in body ? body.errorMessage : 'unknown cause'
+					  }`
+			);
+			setToastType(response.ok ? 'success' : 'error');
+		} catch (error) {
+			console.error(error);
+			setToastText('Network error: could not connect to the server.');
+			setToastType('error');
+		}
+	}, [emailRequestBody]);
 
 	return (
 		<PageWrapper>
@@ -116,16 +97,19 @@ export default function Contact() {
 				</p>
 				<p>Tel: Found on your invitation</p>
 				<p>Or fill out the form below:</p>
-				<form
+				<Form
 					onSubmit={onSubmit}
-					className='w-full flex flex-col gap-2'>
+					onDismissToast={() => {
+						setToastType('none');
+					}}
+					toastText={toastText}
+					toastType={toastType}>
 					<div>
 						<Label
 							htmlFor='name'
 							value='Full name'
 						/>
 						<TextInput
-							disabled={sending}
 							id='name'
 							placeholder='Joe Bloggs'
 							required
@@ -141,12 +125,11 @@ export default function Contact() {
 							value='Email'
 						/>
 						<TextInput
-							disabled={sending}
 							onChange={(e) =>
 								setEmailRequestBody((c) => ({ ...c, email: e.target.value }))
 							}
 							type='email'
-							icon={Icons.HiEnvelope}
+							icon={HiEnvelope}
 							placeholder='name@domain.com'
 							required
 							id='email'
@@ -159,7 +142,6 @@ export default function Contact() {
 							value='Subject'
 						/>
 						<TextInput
-							disabled={sending}
 							value={emailRequestBody.subject}
 							id='subject'
 							placeholder='Subject...'
@@ -176,7 +158,6 @@ export default function Contact() {
 							Message
 						</Label>
 						<Textarea
-							disabled={sending}
 							id='message'
 							value={emailRequestBody.message}
 							onChange={(e) =>
@@ -186,37 +167,7 @@ export default function Contact() {
 							rows={12}
 							placeholder='Write your message here'></Textarea>
 					</div>
-					<Button
-						type='submit'
-						className='min-w-24 w-fit bg-secondaryColor hover:bg-darkAccentColor'
-						disabled={sending}>
-						{sending ? (
-							<>
-								<Spinner aria-label=''></Spinner>
-								<span className='pl-3'>Sending...</span>
-							</>
-						) : (
-							<>Submit</>
-						)}
-					</Button>
-				</form>
-				{toastType === 'success' ? (
-					<Toast>
-						<FaTelegramPlane className='h-5 w-5 text-secondaryColor' />
-						<div className='pl-4 text-sm font-normal'>{toastText}</div>
-						<Toast.Toggle onDismiss={() => setToastType('none')} />
-					</Toast>
-				) : toastType === 'error' ? (
-					<Toast>
-						<div className='inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-500'>
-							<Icons.HiXMark className='h-5 w-5' />
-						</div>
-						<div className='pl-4 text-sm font-normal'>{toastText}</div>
-						<Toast.Toggle onDismiss={() => setToastType('none')} />
-					</Toast>
-				) : (
-					<></>
-				)}
+				</Form>
 			</section>
 		</PageWrapper>
 	);

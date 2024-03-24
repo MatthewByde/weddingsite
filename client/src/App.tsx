@@ -1,6 +1,11 @@
 import React from 'react';
 import Router from './Router';
 
+export const AdminKeyContext = React.createContext<{
+	key: string | null;
+	setKey: React.Dispatch<React.SetStateAction<string | null>>;
+}>({ key: null, setKey: () => {} });
+
 export const WindowWidthContext = React.createContext<{
 	width: number;
 	isMobile: boolean;
@@ -26,12 +31,15 @@ export default function App() {
 	}, [handleWindowSizeChange]);
 
 	const [navCollapsed, setNavCollapsed] = React.useState<boolean>(width < 768);
+	const [key, setKey] = React.useState<string | null>(null);
 
 	return (
 		<WindowWidthContext.Provider
 			value={{ width: width, isMobile: width < 768 }}>
 			<NavCollapsedContext.Provider value={{ navCollapsed, setNavCollapsed }}>
-				<Router />
+				<AdminKeyContext.Provider value={{ key, setKey }}>
+					<Router />
+				</AdminKeyContext.Provider>
 			</NavCollapsedContext.Provider>
 		</WindowWidthContext.Provider>
 	);
