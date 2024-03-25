@@ -16,13 +16,17 @@ import {
 	CheckRSVPRequestResponse,
 	RSVPRawJSONSchema,
 	ResponseType,
+	UpdateRSVPRequestBody,
+	UpdateRSVPRequestResponse,
 } from '../../../server/src/constants';
 import { Link } from 'react-router-dom';
 import { HiEnvelope, HiMiniArrowLeftOnRectangle } from 'react-icons/hi2';
 
 export default function RSVP() {
 	const [checkRsvpRequestResponse, setCheckRsvpRequestResponse] =
-		React.useState<CheckRSVPRequestResponse<'success'> | null>(null);
+		React.useState<
+			(CheckRSVPRequestResponse<'success'> & { submitterName: string }) | null
+		>(null);
 	return (
 		<PageWrapper>
 			<section className='flex flex-col gap-2 items-start py-8 px-8 w-full max-w-3xl text-textColor'>
@@ -89,12 +93,21 @@ type RSVPFormData = Exclude<
 	RSVPRawJSONSchema['invites'][number]['data']['people'],
 	undefined
 >;
+//TODO test unsubscribing
+//TODO test login system
+//TODO support for login + overwrite (read the data on an invite into the form?)
+//TODO support for unnamed +1s
+//TODO support for returning all data, formatting as csv and downloading
 
 function RSVPForm({
 	checkRsvpResponse,
 }: {
-	checkRsvpResponse: Exclude<CheckRSVPRequestResponse<'success'>, undefined>;
+	checkRsvpResponse: Exclude<
+		CheckRSVPRequestResponse<'success'> & { submitterName: string },
+		undefined
+	>;
 }) {
+	const [submitted, setSubmitted] = React.useState(false);
 	const [toastType, setToastType] = React.useState<
 		'success' | 'error' | 'none'
 	>('none');
@@ -106,62 +119,114 @@ function RSVPForm({
 	const [allowSaveEmail, setAllowSaveEmail] = React.useState(true);
 
 	const onSubmit = React.useCallback(async () => {
-		//TODO
-	}, []);
+		const ip = await fetch('https://api.ipify.org?format=json')
+			.then((response) => response.json())
+			.then((json) => json.ip as string)
+			.catch(() => 'unknown');
+
+		const body: UpdateRSVPRequestBody = {
+			inviteId: checkRsvpResponse.inviteId,
+			allowSaveEmail: allowSaveEmail,
+			email: email,
+			ip: ip,
+			people: rsvpFormData,
+			submitterName: checkRsvpResponse.submitterName,
+		};
+		try {
+			const resp = await fetch('/api/updatersvp', {
+				body: JSON.stringify(body),
+				method: 'POST',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+			});
+			const json = (await resp.json()) as UpdateRSVPRequestResponse;
+			if (resp.ok) {
+				setSubmitted(true);
+				return;
+			}
+			setToastText(
+				`Error ${resp.status}: ${resp.statusText} - ${
+					'errorMessage' in json ? json.errorMessage : 'unknown cause'
+				}`
+			);
+			setToastType('error');
+		} catch (error) {
+			console.error(error);
+			setToastText('Network error: could not connect to the server.');
+			setToastType('error');
+		}
+	}, [
+		allowSaveEmail,
+		checkRsvpResponse.inviteId,
+		checkRsvpResponse.submitterName,
+		email,
+		rsvpFormData,
+	]);
 	//TODO testing and styling
 	return (
-		<Form
-			onSubmit={onSubmit}
-			onDismissToast={() => {
-				setToastType('none');
-			}}
-			toastText={toastText}
-			toastType={toastType}
-			submitButtonText='Submit'>
-			<Accordion>
-				{rsvpFormData.map((e, i) => {
-					//TODO accordion configure collapsing to only show one person at a time, and start with first one expanded
-					return (
-						<RSVPFormSection
-							formData={e}
-							setFormData={setRsvpFormData}
-							index={i}
-							invitedToAfternoon={
-								checkRsvpResponse.invitedToAfternoon
-							}></RSVPFormSection>
-					);
-				})}
-			</Accordion>
-			<div>
-				<Label
-					htmlFor='email'
-					value='Email (optional - we will send a receipt with the details of your RSVP response to this email)'
-				/>
-				<TextInput
-					onChange={(e) => setEmail(e.target.value)}
-					type='email'
-					icon={HiEnvelope}
-					placeholder='name@domain.com'
-					id='email'
-					value={email}
-				/>
-			</div>
-			<div className='flex items-center gap-2'>
-				<Checkbox
-					id='storeemail'
-					checked={allowSaveEmail}
-					onChange={(e) => {
-						setAllowSaveEmail(e.target.checked);
+		<>
+			{submitted ? (
+				<h1>
+					RSVP submitted successfully, thanks! We look forward to celebrating
+					with you!
+				</h1>
+			) : (
+				<Form
+					onSubmit={onSubmit}
+					onDismissToast={() => {
+						setToastType('none');
 					}}
-				/>
-				<Label htmlFor='storeemail'>
-					Check this box to allow us to store your email for the sole purpose of
-					more easily comnmunicating any important updates with you, in relation
-					to the wedding. Your email would not be shared with any 3rd parties,
-					and would be used as sparingly as possible.
-				</Label>
-			</div>
-		</Form>
+					toastText={toastText}
+					toastType={toastType}
+					submitButtonText='Submit'>
+					<Accordion>
+						{rsvpFormData.map((e, i) => {
+							//TODO accordion configure collapsing to only show one person at a time, and start with first one expanded
+							return (
+								<RSVPFormSection
+									formData={e}
+									setFormData={setRsvpFormData}
+									index={i}
+									invitedToAfternoon={
+										checkRsvpResponse.invitedToAfternoon
+									}></RSVPFormSection>
+							);
+						})}
+					</Accordion>
+					<div>
+						<Label
+							htmlFor='email'
+							value='Email (optional - we will send a receipt with the details of your RSVP response to this email)'
+						/>
+						<TextInput
+							onChange={(e) => setEmail(e.target.value)}
+							type='email'
+							icon={HiEnvelope}
+							placeholder='name@domain.com'
+							id='email'
+							value={email}
+						/>
+					</div>
+					<div className='flex items-center gap-2'>
+						<Checkbox
+							id='storeemail'
+							checked={allowSaveEmail}
+							onChange={(e) => {
+								setAllowSaveEmail(e.target.checked);
+							}}
+						/>
+						<Label htmlFor='storeemail'>
+							Check this box to allow us to store your email for the sole
+							purpose of more easily comnmunicating any important updates with
+							you, in relation to the wedding. Your email would not be shared
+							with any 3rd parties, and would be used as sparingly as possible.
+						</Label>
+					</div>
+				</Form>
+			)}
+		</>
 	);
 }
 
@@ -358,7 +423,7 @@ function RSVPFormSection({
 											}));
 										}}
 									/>
-									<Label htmlFor='evening'>
+									<Label htmlFor='alcohol'>
 										Orange juice in place of alcohol?
 									</Label>
 								</div>
@@ -477,7 +542,9 @@ function NameForm({
 	setCheckRsvpRequestResponse,
 }: {
 	setCheckRsvpRequestResponse: React.Dispatch<
-		React.SetStateAction<CheckRSVPRequestResponse<'success'> | null>
+		React.SetStateAction<
+			(CheckRSVPRequestResponse<'success'> & { submitterName: string }) | null
+		>
 	>;
 }) {
 	const [toastType, setToastType] = React.useState<
@@ -517,7 +584,10 @@ function NameForm({
 			}
 			setNameFormData(defaultNameFormData);
 			setToastType('none');
-			setCheckRsvpRequestResponse(body);
+			setCheckRsvpRequestResponse({
+				...body,
+				submitterName: `${nameFormData.firstName} ${nameFormData.surname}`,
+			});
 		} catch (error) {
 			console.error(error);
 			setToastText('Network error: could not connect to the server.');

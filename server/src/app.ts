@@ -73,6 +73,33 @@ export default function main() {
 	getrsvpSetupHandler(app);
 	authSetupHandler(app);
 	updatersvpSetupHandler(app);
+	unsubscribeSetupHandler(app);
+}
+
+function unsubscribeSetupHandler(app: express.Express) {
+	app.get('/api/unsubscribe', (req, res) => {
+		try {
+			const inviteId = req.query.id;
+			if (
+				typeof inviteId !== 'string' ||
+				rsvpData.invites[inviteId] === undefined
+			) {
+				res.status(400).send('Error 400 - Bad Request: invalid invite id');
+				return;
+			}
+			if (rsvpData.invites[inviteId].doNotEmail) {
+				res.status(200).send('You are already unsubscribed.');
+				return;
+			}
+			rsvpData.invites[inviteId].doNotEmail = true;
+			res.status(200).send('You have now been unsubscribed.');
+		} catch (e) {
+			console.error(e);
+			res.status(500).json({
+				errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+			});
+		}
+	});
 }
 
 function updatersvpSetupHandler(app: express.Express) {
@@ -80,26 +107,17 @@ function updatersvpSetupHandler(app: express.Express) {
 		'/api/updatersvp',
 		(req, res: express.Response<UpdateRSVPRequestResponse>) => {
 			const body = req.body() as UpdateRSVPRequestBody;
-			const name = req.query.name;
-			const inviteId = rsvpData.people[name as string];
 			if (body.adminAuth) {
 				//TODO
 			} else {
-				if (inviteId === undefined) {
-					res.status(400).json({
-						errorMessage: 'could not find a user with that name.',
-					});
-				} else if (rsvpData.invites[inviteId] === undefined) {
-					res.status(500).json({ errorMessage: 'data unexpectedly missing.' });
-				} else if (rsvpData.invites[inviteId].responded) {
+				if (rsvpData.invites[body.inviteId] === undefined) {
+					res.status(400).json({ errorMessage: 'invalid invite ID' });
+				} else if (rsvpData.invites[body.inviteId].responded) {
 					res
 						.status(401)
 						.json({ errorMessage: 'you have already submitted your rsvp!' });
 				}
-				const cipherText = crypto_box_seal(Buffer.from(body.data), pk);
-				rsvpData.invites[inviteId].data =
-					Buffer.from(cipherText).toString('base64');
-				//TODO create type for the data JSON. Verify that received data matches this prior to encrypting. We can also use this on client side when decrypting.
+				//TODO handle RSVP - send email, encrypt, update JSON
 			}
 		}
 	);
@@ -171,6 +189,7 @@ function checkrsvpSetupHandler(app: express.Express) {
 						e[1] === inviteId ? e[0] : []
 					),
 					invitedToAfternoon: rsvpData.invites[inviteId].invitedToAfternoon,
+					inviteId,
 				});
 			} catch (e) {
 				console.error(e);
