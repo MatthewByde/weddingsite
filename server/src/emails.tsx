@@ -1,4 +1,4 @@
-import emailInfo from './assets/confidential.json' with {type: 'json'};
+import emailInfo from './assets/confidential.json';
 import nodemailer from 'nodemailer';
 import React from 'react';
 import {
@@ -17,7 +17,14 @@ import {
 } from '@react-email/components';
 import { imageData } from './emailBannerData.js';
 import Mail from 'nodemailer/lib/mailer';
-import { EMAILDOMAIN_MAXCHARS, EMAILLOCAL_MAXCHARS, CONTACT_MESSAGE_MAXCHARS, CONTACT_NAME_MAXCHARS, CONTACT_SUBJECT_MAXCHARS } from './constants.js';
+import {
+	EMAILDOMAIN_MAXCHARS,
+	EMAILLOCAL_MAXCHARS,
+	CONTACT_MESSAGE_MAXCHARS,
+	CONTACT_NAME_MAXCHARS,
+	CONTACT_SUBJECT_MAXCHARS,
+	UpdateRSVPRequestBody,
+} from './constants.js';
 
 const transporter = nodemailer.createTransport({
 	service: 'gmail',
@@ -26,6 +33,24 @@ const transporter = nodemailer.createTransport({
 		pass: emailInfo.gmailLogin.password,
 	},
 });
+
+export async function sendRSVPEmail(data: UpdateRSVPRequestBody) {
+	const email = createRSVPEmail(data);
+	return await sendEmail(
+		email.plain,
+		email.html,
+		`Matthew & Adele's wedding RSVP receipt`,
+		'Matthew and Adele',
+		data.email ?? '',
+		[
+			{
+				cid: 'image',
+				filename: 'image.png',
+				content: Buffer.from(imageData, 'base64'),
+			},
+		]
+	);
+}
 
 export async function sendContactFormEmail(
 	message: string,
@@ -38,7 +63,10 @@ export async function sendContactFormEmail(
 	fromName = fromName.slice(0, CONTACT_NAME_MAXCHARS);
 	const [localPart, domainPart] = userEmail.split('@', 1);
 	if (localPart && domainPart) {
-		userEmail = `${localPart.slice(0, EMAILLOCAL_MAXCHARS)}@${domainPart.slice(0, EMAILDOMAIN_MAXCHARS)}`;
+		userEmail = `${localPart.slice(0, EMAILLOCAL_MAXCHARS)}@${domainPart.slice(
+			0,
+			EMAILDOMAIN_MAXCHARS
+		)}`;
 	} else {
 		userEmail = userEmail.slice(0, EMAILLOCAL_MAXCHARS);
 	}
@@ -49,7 +77,13 @@ export async function sendContactFormEmail(
 		subject,
 		fromName,
 		emailInfo.contactFormToEmail,
-		[{cid: 'image', filename: 'image.png', content: Buffer.from(imageData, 'base64')}],
+		[
+			{
+				cid: 'image',
+				filename: 'image.png',
+				content: Buffer.from(imageData, 'base64'),
+			},
+		],
 		userEmail
 	);
 }
@@ -61,8 +95,7 @@ async function sendEmail(
 	fromName: string,
 	to: string | string[],
 	attachments?: Mail.Attachment[],
-	replyTo?: string | string[],
-
+	replyTo?: string | string[]
 ) {
 	return await transporter.sendMail({
 		disableFileAccess: true,
@@ -73,8 +106,100 @@ async function sendEmail(
 		subject,
 		html,
 		replyTo,
-		attachments
+		attachments,
 	});
+}
+
+function createRSVPEmail(data: UpdateRSVPRequestBody) {
+	return {
+		html: render(<RSVPEmail data={data}></RSVPEmail>, { pretty: true }),
+		plain: render(<RSVPEmail data={data}></RSVPEmail>, {
+			pretty: true,
+			plainText: true,
+		}),
+	};
+}
+
+function RSVPEmail({ data }: { data: UpdateRSVPRequestBody }) {
+	const { time, ip, people, submitterName, allowSaveEmail, inviteId } = data;
+
+	return (
+		<Html>
+			<Head />
+			<Preview>{`Your RSVP submission for Matthew and Adele's wedding`}</Preview>
+			<Body style={main}>
+				<Container style={container}>
+					<Section style={coverSection}>
+						<Section style={imageSection}>
+							<Link
+								href='https://matthewandadelewedding.co.uk'
+								target='_blank'>
+								<Img
+									src={'cid:image'}
+									alt='Matthew and adele wedding banner'
+									width='100%'
+									className='m-0 border-0 p-0 block'
+								/>
+							</Link>
+						</Section>
+						<Section style={upperSection}>
+							<Heading
+								style={h1}>{`Thanks for filling out the RSVP form!`}</Heading>
+							{people?.map((e, i) => (
+								<RSVPEmailSection
+									key={i}
+									person={e}></RSVPEmailSection>
+							))}
+						</Section>
+						<Hr />
+						<Section style={lowerSection}>
+							<Text style={cautionText}>
+								{`The above RSVP was submitted at ${time} by ${submitterName} at ${ip}`}
+							</Text>
+						</Section>
+					</Section>
+					<Text style={footerText}>
+						{'This message was produced by '}
+						<Link
+							href='https://matthewandadelewedding.co.uk'
+							target='_blank'
+							style={link}>
+							matthewandadelewedding.co.uk
+						</Link>
+						{
+							' at request of a user, and may contain confidential information. If you have received this email in error, please delete it, then '
+						}
+						<Link
+							href='https://matthewandadelewedding.co.uk/contact'
+							target='_blank'
+							style={link}>
+							contact us
+						</Link>
+						{`.${
+							allowSaveEmail
+								? 'If you are subscribed to our emails and you wish to unsubscribe, '
+								: ''
+						}`}
+						{allowSaveEmail && (
+							<Link
+								href={`https://matthewandadelewedding.co.uk/api/unsubscribe?id=${inviteId}`}
+								target='_blank'
+								style={link}>
+								click here
+							</Link>
+						)}
+						.
+					</Text>
+				</Container>
+			</Body>
+		</Html>
+	);
+}
+
+function RSVPEmailSection(
+	person: Exclude<UpdateRSVPRequestBody['people'], undefined>[number]
+) {
+	const isComing = person.afternoon || person.evening || person.ceremony;
 }
 
 function createContactFormEmail(

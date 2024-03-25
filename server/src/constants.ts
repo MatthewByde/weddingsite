@@ -25,7 +25,8 @@ export type SendEmailRequestResponse =
 
 export type RSVPStoredJSONSchema = {
 	invites: {
-		[inviteId: number]: {
+		[inviteId: string]: {
+			doNotEmail: boolean;
 			responded: boolean;
 			invitedToAfternoon: boolean;
 			data: string;
@@ -33,16 +34,17 @@ export type RSVPStoredJSONSchema = {
 		};
 	};
 	people: {
-		[name: string]: number;
+		[name: string]: string;
 	};
 };
 
 export type RSVPRawJSONSchema = {
 	people: {
-		[name: string]: number;
+		[name: string]: string;
 	};
 	invites: {
-		[inviteId: number]: {
+		[inviteId: string]: {
+			doNotEmail: boolean;
 			responded: boolean;
 			invitedToAfternoon: boolean;
 			names: string[];
@@ -67,19 +69,18 @@ export type RSVPRawJSONSchema = {
 };
 
 export type UpdateRSVPRequestBody = {
-	name: string;
-	data: string;
+	inviteId: string;
 	invitedToAfternoon?: boolean;
-	email?: string;
 	adminAuth?: string;
-	clientEncrypted?: boolean;
-};
+	allowSaveEmail?: boolean;
+	submitterName: string;
+} & RSVPRawJSONSchema['invites'][number]['data'];
 
 export type UpdateRSVPRequestResponse =
 	| {
 			errorMessage: string;
 	  }
-	| undefined;
+	| object;
 
 export type AuthRequestResponse =
 	| {
@@ -101,6 +102,7 @@ export type CheckRSVPRequestResponse<T extends ResponseType> = object &
 				responded: boolean;
 				invitedToAfternoon: boolean;
 				peopleOnInvite: string[];
+				inviteId: string;
 		  }
 		: { errorMessage: string });
 
