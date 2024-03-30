@@ -5,5 +5,6 @@ export const EMAILDOMAIN_MAXCHARS = 255;
 export const EMAILLOCAL_MAXCHARS = 64;
 export const RSVP_FIRSTNAME_MAXCHARS = 25;
 export const RSVP_SURNAME_MAXCHARS = 25;
+export const RSVP_FULLNAME_MAXCHARS = 51; //one for a space
 export const RSVP_DIETARY_MAXCHARS = 1000;
 export const RSVP_COMMENTS_MAXCHARS = 1000;

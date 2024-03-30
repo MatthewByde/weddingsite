@@ -10,6 +10,9 @@ import {
 	PKRequestResponse,
 	RSVPRawJSONSchema,
 	RSVPStoredJSONSchema,
+	RSVP_COMMENTS_MAXCHARS,
+	RSVP_DIETARY_MAXCHARS,
+	RSVP_FULLNAME_MAXCHARS,
 	ResponseType,
 	SendEmailRequestBody,
 	SendEmailRequestResponse,
@@ -217,6 +220,16 @@ function updatersvpSetupHandler(app: express.Express) {
 		(req, res: express.Response<UpdateRSVPRequestResponse>) => {
 			try {
 				const body = req.body as UpdateRSVPRequestBody;
+				body.submitterName = body.submitterName?.slice(
+					0,
+					RSVP_FULLNAME_MAXCHARS
+				);
+				body.people = body.people?.map((e) => {
+					e.comments = e.comments?.slice(0, RSVP_COMMENTS_MAXCHARS);
+					e.dietary = e.dietary?.slice(0, RSVP_DIETARY_MAXCHARS);
+					e.name = e.name.slice(0, RSVP_FULLNAME_MAXCHARS);
+					return e;
+				});
 				if (body.adminAuth) {
 					const nonce = Uint8Array.from(Buffer.from(body.adminAuth, 'base64'));
 					if (!checkNonce(nonce)) {

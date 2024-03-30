@@ -1,5 +1,6 @@
 import express from 'express';
 import { sendContactFormEmail, sendEmail, sendRSVPEmail } from './emails.js';
+import { RSVP_COMMENTS_MAXCHARS, RSVP_DIETARY_MAXCHARS, RSVP_FULLNAME_MAXCHARS, } from './constants.js';
 import { readFileSync, writeFile } from 'fs';
 import { crypto_box_seal, randombytes_buf } from '@devtomio/sodium';
 import emailInfo from './assets/confidential.json';
@@ -152,6 +153,13 @@ function updatersvpSetupHandler(app) {
     app.post('/api/updatersvp', (req, res) => {
         try {
             const body = req.body;
+            body.submitterName = body.submitterName?.slice(0, RSVP_FULLNAME_MAXCHARS);
+            body.people = body.people?.map((e) => {
+                e.comments = e.comments?.slice(0, RSVP_COMMENTS_MAXCHARS);
+                e.dietary = e.dietary?.slice(0, RSVP_DIETARY_MAXCHARS);
+                e.name = e.name.slice(0, RSVP_FULLNAME_MAXCHARS);
+                return e;
+            });
             if (body.adminAuth) {
                 const nonce = Uint8Array.from(Buffer.from(body.adminAuth, 'base64'));
                 if (!checkNonce(nonce)) {
