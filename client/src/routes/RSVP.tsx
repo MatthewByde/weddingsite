@@ -126,13 +126,15 @@ type RSVPFormData = Exclude<
 	RSVPRawJSONSchema[string]['data']['people'],
 	undefined
 >;
-//TODO test unsubscribing
+
 //TODO support for unnamed +1s
 //TODO support for returning all data, formatting as csv and downloading
-//TODO testing and styling
 //TODO input length validation like for contact form for RSVP form & name form. Name form done locally but not serverside currently.
-//TODO error bounadries eg for 404s as well
-//TODO use localstorage for storing response progress
+
+//TODO test unsubscribing
+//TODO testing and styling
+//TODO test error boundary
+//TODO test localstorage for storing response progress
 //TODO test email styling
 
 async function getNonce(keys: { adminKey: Uint8Array; publicKey: Uint8Array }) {

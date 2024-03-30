@@ -142,6 +142,7 @@ function unsubscribeSetupHandler(app: express.Express) {
 	});
 }
 //TODO add ability to delete an invite
+//TODO add logs, and log to a log file
 function updatersvpSetupHandler(app: express.Express) {
 	app.post(
 		'/api/updatersvp',
