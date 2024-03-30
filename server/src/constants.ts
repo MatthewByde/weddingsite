@@ -25,6 +25,13 @@ export type SendEmailRequestBody = {
 	subject: string;
 };
 
+export type DeleteInviteRequestBody = {
+	nonce: string;
+	inviteId: string;
+};
+
+export type DeleteInviteRequestResponse = object | { errorMessage: string };
+
 export type SendEmailRequestResponse =
 	| SMTPTransport.SentMessageInfo
 	| { errorMessage: string };

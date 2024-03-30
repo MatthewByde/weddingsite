@@ -3,6 +3,8 @@ import { sendContactFormEmail, sendEmail, sendRSVPEmail } from './emails.js';
 import {
 	AuthRequestResponse,
 	CheckRSVPRequestResponse,
+	DeleteInviteRequestBody,
+	DeleteInviteRequestResponse,
 	GetRSVPRequestBody,
 	GetRSVPRequestResponse,
 	PKRequestResponse,
@@ -16,8 +18,8 @@ import {
 } from './constants.js';
 import { readFileSync, writeFile } from 'fs';
 import { crypto_box_seal, randombytes_buf } from '@devtomio/sodium';
-import emailInfo from './assets/confidential.json' with {type: 'json'};
-import winston from 'winston'; 
+import emailInfo from './assets/confidential.json';
+import winston from 'winston';
 
 const logger = winston.createLogger({
 	format: winston.format.json(),
@@ -31,7 +33,6 @@ const logger = winston.createLogger({
 		}),
 	],
 });
-
 
 logger.info('Starting server');
 
@@ -91,6 +92,7 @@ export default function main() {
 	updatersvpSetupHandler(app);
 	unsubscribeSetupHandler(app);
 	pkSetupHandler(app);
+	deleteinviteSetupHandler(app);
 }
 
 function writeJson() {
@@ -165,7 +167,49 @@ function unsubscribeSetupHandler(app: express.Express) {
 		}
 	});
 }
-//TODO add ability to delete an invite
+
+function deleteinviteSetupHandler(app: express.Express) {
+	app.post(
+		'/api/deleteinvite',
+		(req, res: express.Response<DeleteInviteRequestResponse>) => {
+			try {
+				const body = req.body as DeleteInviteRequestBody;
+				if (!body.nonce) {
+					logger.info(
+						`deleteinvite request received with no nonce for invite ${body.inviteId}`
+					);
+					res.status(400).json({ errorMessage: 'invalid body, no nonce' });
+					return;
+				}
+				const nonce = Uint8Array.from(Buffer.from(body.nonce, 'base64'));
+				if (checkNonce(nonce)) {
+					if (body.inviteId in rsvpData) {
+						logger.info(
+							`deleteinvite request received for invite ${body.inviteId}`
+						);
+						delete rsvpData[body.inviteId];
+						res.status(200).json({});
+					} else {
+						logger.info(
+							`deleteinvite request received for invalid invite id ${body.inviteId}`
+						);
+						res.status(400).json({ errorMessage: 'invalid invite id' });
+					}
+				} else {
+					logger.warn(
+						`deleteinvite request received with invalid nonce for invite ${body.inviteId}`
+					);
+					res.status(401).json({ errorMessage: 'invalid nonce' });
+				}
+			} catch (e) {
+				logger.error(e);
+				res.status(500).json({
+					errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+				});
+			}
+		}
+	);
+}
 
 function updatersvpSetupHandler(app: express.Express) {
 	app.post(
@@ -176,11 +220,15 @@ function updatersvpSetupHandler(app: express.Express) {
 				if (body.adminAuth) {
 					const nonce = Uint8Array.from(Buffer.from(body.adminAuth, 'base64'));
 					if (!checkNonce(nonce)) {
-						logger.warn(`updatersvp - incorrect admin credentials provided. inviteid ${body.inviteId}`);
+						logger.warn(
+							`updatersvp - incorrect admin credentials provided. inviteid ${body.inviteId}`
+						);
 						res.status(401).json({ errorMessage: 'invalid nonce' });
 						return;
 					}
-                    logger.info(`updatersvp received from admin for inviteid ${body.inviteId}`);
+					logger.info(
+						`updatersvp received from admin for inviteid ${body.inviteId}`
+					);
 					rsvpData[body.inviteId] = {
 						invitedToAfternoon:
 							body.invitedToAfternoon ??
@@ -213,11 +261,15 @@ function updatersvpSetupHandler(app: express.Express) {
 					res.status(200).json({});
 				} else {
 					if (rsvpData[body.inviteId] === undefined) {
-						logger.warn(`updatersvp received from normal user ${body.submitterName} with invalid invite ID: ${body.inviteId}`);
+						logger.warn(
+							`updatersvp received from normal user ${body.submitterName} with invalid invite ID: ${body.inviteId}`
+						);
 						res.status(400).json({ errorMessage: 'invalid invite ID' });
 						return;
 					} else if (rsvpData[body.inviteId].submittedBy) {
-						logger.verbose(`updatersvp received from normal user ${body.submitterName}, rsvp already submitted: ${body.inviteId}`);
+						logger.verbose(
+							`updatersvp received from normal user ${body.submitterName}, rsvp already submitted: ${body.inviteId}`
+						);
 						res.status(401).json({
 							errorMessage: `your rsvp has already been submitted by ${
 								rsvpData[body.inviteId].submittedBy
@@ -225,7 +277,9 @@ function updatersvpSetupHandler(app: express.Express) {
 						});
 						return;
 					}
-					logger.verbose(`updatersvp received from normal user ${body.submitterName}: ${body.inviteId}`);
+					logger.verbose(
+						`updatersvp received from normal user ${body.submitterName}: ${body.inviteId}`
+					);
 					const toEncrypt: RSVPRawJSONSchema[string]['data'] = {
 						email: body.allowSaveEmail ? body.email : undefined,
 						ip: body.ip,
@@ -260,16 +314,16 @@ function getrsvpSetupHandler(app: express.Express) {
 			try {
 				const body = req.body as GetRSVPRequestBody;
 				if (!body.nonce) {
-					logger.info("getrsvp request received with no nonce");
+					logger.info('getrsvp request received with no nonce');
 					res.status(400).json({ errorMessage: 'invalid body, no nonce' });
 					return;
 				}
 				const nonce = Uint8Array.from(Buffer.from(body.nonce, 'base64'));
 				if (checkNonce(nonce)) {
-					logger.info("getrsvp request received");
+					logger.info('getrsvp request received');
 					res.status(200).json(rsvpData);
 				} else {
-					logger.warn("getrsvp request received with invalid nonce");
+					logger.warn('getrsvp request received with invalid nonce');
 					res.status(401).json({ errorMessage: 'invalid nonce' });
 				}
 			} catch (e) {
@@ -285,7 +339,7 @@ function getrsvpSetupHandler(app: express.Express) {
 function authSetupHandler(app: express.Express) {
 	app.get('/api/auth', (_, res: express.Response<AuthRequestResponse>) => {
 		try {
-			logger.info("auth request received");
+			logger.info('auth request received');
 			const nonce = randombytes_buf(32);
 			const cipherText = crypto_box_seal(nonce, pk);
 			nonces.push({ nonce, time: new Date().getTime() });
@@ -311,13 +365,17 @@ function checkrsvpSetupHandler(app: express.Express) {
 						.includes((name as string)?.toLowerCase())
 				)?.[0];
 				if (inviteId === undefined) {
-					logger.verbose(`checkrsvp request received with invalid name: ${name} `);
+					logger.verbose(
+						`checkrsvp request received with invalid name: ${name} `
+					);
 					res.status(400).json({
 						errorMessage: 'could not find anyone with that name',
 					});
 					return;
 				}
-				logger.verbose(`checkrsvp request received with name: ${name} for inviteid ${inviteId}`);
+				logger.verbose(
+					`checkrsvp request received with name: ${name} for inviteid ${inviteId}`
+				);
 				res.status(200).json({
 					submittedBy: rsvpData[inviteId].submittedBy,
 					peopleOnInvite: rsvpData[inviteId].peopleOnInvite,
@@ -352,7 +410,9 @@ function sendemailSetupHandler(app: express.Express) {
 					res
 						.status(400)
 						.json({ errorMessage: 'duplicate request, try again later.' });
-					logger.info(`email request from ${body.name} rejected due to duplicate request`);
+					logger.info(
+						`email request from ${body.name} rejected due to duplicate request`
+					);
 					return;
 				}
 				logger.verbose(`email request received from ${body.name}`);

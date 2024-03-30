@@ -2,7 +2,7 @@ import express from 'express';
 import { sendContactFormEmail, sendEmail, sendRSVPEmail } from './emails.js';
 import { readFileSync, writeFile } from 'fs';
 import { crypto_box_seal, randombytes_buf } from '@devtomio/sodium';
-import emailInfo from './assets/confidential.json' with { type: 'json' };
+import emailInfo from './assets/confidential.json';
 import winston from 'winston';
 const logger = winston.createLogger({
     format: winston.format.json(),
@@ -59,6 +59,7 @@ export default function main() {
     updatersvpSetupHandler(app);
     unsubscribeSetupHandler(app);
     pkSetupHandler(app);
+    deleteinviteSetupHandler(app);
 }
 function writeJson() {
     logger.silly('writing json');
@@ -113,7 +114,40 @@ function unsubscribeSetupHandler(app) {
         }
     });
 }
-//TODO add ability to delete an invite
+function deleteinviteSetupHandler(app) {
+    app.post('/api/deleteinvite', (req, res) => {
+        try {
+            const body = req.body;
+            if (!body.nonce) {
+                logger.info(`deleteinvite request received with no nonce for invite ${body.inviteId}`);
+                res.status(400).json({ errorMessage: 'invalid body, no nonce' });
+                return;
+            }
+            const nonce = Uint8Array.from(Buffer.from(body.nonce, 'base64'));
+            if (checkNonce(nonce)) {
+                if (body.inviteId in rsvpData) {
+                    logger.info(`deleteinvite request received for invite ${body.inviteId}`);
+                    delete rsvpData[body.inviteId];
+                    res.status(200).json({});
+                }
+                else {
+                    logger.info(`deleteinvite request received for invalid invite id ${body.inviteId}`);
+                    res.status(400).json({ errorMessage: 'invalid invite id' });
+                }
+            }
+            else {
+                logger.warn(`deleteinvite request received with invalid nonce for invite ${body.inviteId}`);
+                res.status(401).json({ errorMessage: 'invalid nonce' });
+            }
+        }
+        catch (e) {
+            logger.error(e);
+            res.status(500).json({
+                errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+            });
+        }
+    });
+}
 function updatersvpSetupHandler(app) {
     app.post('/api/updatersvp', (req, res) => {
         try {
@@ -192,17 +226,17 @@ function getrsvpSetupHandler(app) {
         try {
             const body = req.body;
             if (!body.nonce) {
-                logger.info("getrsvp request received with no nonce");
+                logger.info('getrsvp request received with no nonce');
                 res.status(400).json({ errorMessage: 'invalid body, no nonce' });
                 return;
             }
             const nonce = Uint8Array.from(Buffer.from(body.nonce, 'base64'));
             if (checkNonce(nonce)) {
-                logger.info("getrsvp request received");
+                logger.info('getrsvp request received');
                 res.status(200).json(rsvpData);
             }
             else {
-                logger.warn("getrsvp request received with invalid nonce");
+                logger.warn('getrsvp request received with invalid nonce');
                 res.status(401).json({ errorMessage: 'invalid nonce' });
             }
         }
@@ -217,7 +251,7 @@ function getrsvpSetupHandler(app) {
 function authSetupHandler(app) {
     app.get('/api/auth', (_, res) => {
         try {
-            logger.info("auth request received");
+            logger.info('auth request received');
             const nonce = randombytes_buf(32);
             const cipherText = crypto_box_seal(nonce, pk);
             nonces.push({ nonce, time: new Date().getTime() });
