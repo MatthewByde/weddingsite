@@ -157,7 +157,7 @@ function RSVPEmail({ data }: { data: UpdateRSVPRequestBody }) {
 						<Hr />
 						<Section style={lowerSection}>
 							<Text style={cautionText}>
-								{`The above RSVP was submitted at ${new Date().toISOString()} by ${submitterName} at ${ip}`}
+								{`The above RSVP was submitted at ${new Date().toISOString()} by ${submitterName} from ${ip}`}
 							</Text>
 						</Section>
 					</Section>
