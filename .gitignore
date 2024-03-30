@@ -3,3 +3,4 @@ pat
 *.pem
 confidential.json
 *.log
+rsvp.json

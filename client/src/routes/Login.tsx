@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { AdminKeyContext } from '../App';
 import React from 'react';
-import { PKRequestResponse } from '../../../server/src/constants';
+import { PKRequestResponse } from '../constants';
 import { b642uint8array } from '../lib/Utils';
 
 export default function Login() {

@@ -4,7 +4,6 @@ import {
 	Checkbox,
 	Label,
 	Modal,
-	Radio,
 	Select,
 	TextInput,
 	Textarea,
@@ -20,11 +19,13 @@ import {
 	RSVPRawJSONSchema,
 	RSVP_COMMENTS_MAXCHARS,
 	RSVP_DIETARY_MAXCHARS,
+	RSVP_FIRSTNAME_MAXCHARS,
 	RSVP_FULLNAME_MAXCHARS,
+	RSVP_SURNAME_MAXCHARS,
 	ResponseType,
 	UpdateRSVPRequestBody,
 	UpdateRSVPRequestResponse,
-} from '../../../server/src/constants';
+} from '../constants';
 import { Link } from 'react-router-dom';
 import {
 	HiChevronDown,
@@ -44,26 +45,29 @@ export default function RSVP() {
 	return (
 		<PageWrapper>
 			<section className='flex flex-col gap-2 items-start py-8 px-8 w-full max-w-3xl text-textColor'>
-				<h1
-					className='text-darkAccentColor'
-					style={{
-						fontFamily: 'argue',
-						fontSize: 'min(max(3.75vw, 2rem), 3.75rem)',
-					}}>
-					RSVP
-				</h1>
-
-				{checkRsvpRequestResponse ? (
-					<>
+				<div className='flex justify-between w-full'>
+					<h1
+						className='text-darkAccentColor'
+						style={{
+							fontFamily: 'argue',
+							fontSize: 'min(max(3.75vw, 2rem), 3.75rem)',
+						}}>
+						RSVP
+					</h1>
+					{checkRsvpRequestResponse && (
 						<Button
-							className='min-w-24 w-fit bg-secondaryColor hover:bg-darkAccentColor'
+							className='min-w-24 w-fit bg-secondaryColor hover:bg-darkAccentColor mb-4 '
 							onClick={() => {
 								setCheckRsvpRequestResponse(null);
 							}}>
 							<HiMiniArrowLeftOnRectangle className='w-6 h-6' />
 							Log out
 						</Button>
+					)}
+				</div>
 
+				{checkRsvpRequestResponse ? (
+					<>
 						{keys ? (
 							checkRsvpRequestResponse.submittedBy ? (
 								<>
@@ -131,11 +135,12 @@ type RSVPFormData = Exclude<
 >;
 
 //TODO support for unnamed +1s
-//TODO input length validation like for contact form for RSVP form.
+//TODO test unsubscribing when deployed to live site
+//TODO test emailing when deployed to live site
+//TODO improve look of timer
+//TODO add content to other pages
 
-//TODO test unsubscribing
 //TODO testing and styling
-//TODO test localstorage for storing response progress
 //TODO test email styling
 
 async function getNonce(keys: { adminKey: Uint8Array; publicKey: Uint8Array }) {
@@ -162,6 +167,14 @@ async function getNonce(keys: { adminKey: Uint8Array; publicKey: Uint8Array }) {
 	return ab2b64(decrypted.buffer);
 }
 
+type StoredFormData = {
+	email: string;
+	rsvpFormData: RSVPFormData;
+	expandedIndex: number;
+	allowSaveEmail: boolean;
+	statuses: ('accepts' | 'declines' | 'none')[];
+};
+
 function RSVPForm({
 	checkRsvpResponse,
 	keys,
@@ -172,24 +185,35 @@ function RSVPForm({
 	>;
 	keys?: { adminKey: Uint8Array; publicKey: Uint8Array } | null;
 }) {
+	const fromStorage = localStorage.getItem(
+		checkRsvpResponse.submitterName.toLowerCase()
+	);
+	const stored = fromStorage
+		? (JSON.parse(fromStorage) as StoredFormData)
+		: null;
+
 	const [submitted, setSubmitted] = React.useState(false);
 	const [toastType, setToastType] = React.useState<
 		'success' | 'error' | 'none'
 	>('none');
 	const [toastText, setToastText] = React.useState('Unknown error');
 	const [rsvpFormData, setRsvpFormData] = React.useState<RSVPFormData>(
-		keys ? [] : checkRsvpResponse.peopleOnInvite.map((e) => ({ name: e }))
+		keys
+			? []
+			: stored
+			? stored.rsvpFormData
+			: checkRsvpResponse.peopleOnInvite.map((e) => ({ name: e }))
 	);
-	const [email, setEmail] = React.useState('');
-	const [allowSaveEmail, setAllowSaveEmail] = React.useState(true);
-	const [expandedIndex, setExpandedIndex] = React.useState(0);
-
-	React.useEffect(() => {
-		localStorage.setItem(
-			checkRsvpResponse.submitterName.toLowerCase(),
-			JSON.stringify(rsvpFormData)
-		);
-	}, [checkRsvpResponse.submitterName, rsvpFormData]);
+	const [email, setEmail] = React.useState(stored ? stored.email : '');
+	const [allowSaveEmail, setAllowSaveEmail] = React.useState(
+		stored ? stored.allowSaveEmail : true
+	);
+	const [expandedIndex, setExpandedIndex] = React.useState(
+		stored ? stored.expandedIndex : 0
+	);
+	const [statuses, setStatuses] = React.useState<
+		('accepts' | 'declines' | 'none')[]
+	>(keys ? [] : stored ? stored.statuses : rsvpFormData.map((_) => 'none'));
 
 	React.useEffect(() => {
 		setRsvpFormData((c) => {
@@ -204,15 +228,29 @@ function RSVPForm({
 	}, [rsvpFormData]);
 
 	React.useEffect(() => {
+		localStorage.setItem(
+			checkRsvpResponse.submitterName.toLowerCase(),
+			JSON.stringify({
+				rsvpFormData: rsvpFormData,
+				email: email,
+				allowSaveEmail: allowSaveEmail,
+				expandedIndex: expandedIndex,
+				statuses: statuses,
+			} as StoredFormData)
+		);
+	}, [
+		allowSaveEmail,
+		checkRsvpResponse.submitterName,
+		email,
+		expandedIndex,
+		rsvpFormData,
+		statuses,
+	]);
+
+	React.useEffect(() => {
 		let isSubscribed = true;
 		async function loadFormData() {
 			if (!keys) {
-				const stored = localStorage.getItem(
-					checkRsvpResponse.submitterName.toLowerCase()
-				);
-				if (stored && isSubscribed) {
-					setRsvpFormData(JSON.parse(stored));
-				}
 				return;
 			}
 			try {
@@ -250,19 +288,25 @@ function RSVPForm({
 				);
 				const decoded = new TextDecoder().decode(decryptedInviteData);
 				const json: RSVPRawJSONSchema[string]['data'] = JSON.parse(decoded);
+
 				if (isSubscribed) {
 					setEmail(json.email ?? '');
 					setAllowSaveEmail(json.email ? true : false);
 					setRsvpFormData(json.people ?? []);
+					setStatuses(
+						json.people?.map((e) =>
+							e.afternoon || e.evening || e.ceremony ? 'accepts' : 'declines'
+						) ?? []
+					);
 				}
 			} catch (e) {
 				console.error(e);
 			}
 		}
-
 		if (keys) {
 			loadFormData();
 		}
+
 		return () => {
 			isSubscribed = false;
 		};
@@ -361,10 +405,12 @@ function RSVPForm({
 						{rsvpFormData.map((e, i) => {
 							return (
 								<RSVPFormSection
+									setStatuses={setStatuses}
+									status={statuses[i]}
 									setExpandedIndex={setExpandedIndex}
 									expandedIndex={expandedIndex}
 									key={i}
-									loadedFromServer={keys ? true : false}
+									loaded={stored || keys ? true : false}
 									formData={e}
 									setFormData={setRsvpFormData}
 									index={i}
@@ -414,25 +460,23 @@ function RSVPFormSection({
 	formData,
 	setFormData,
 	invitedToAfternoon,
-	loadedFromServer,
 	expandedIndex,
 	setExpandedIndex,
+	status,
+	setStatuses,
 }: {
 	index: number;
 	formData: RSVPFormData[number];
 	setFormData: React.Dispatch<React.SetStateAction<RSVPFormData>>;
 	invitedToAfternoon: boolean;
-	loadedFromServer: boolean;
+	loaded: boolean;
 	expandedIndex: number;
 	setExpandedIndex: React.Dispatch<React.SetStateAction<number>>;
+	status: 'none' | 'accepts' | 'declines';
+	setStatuses: React.Dispatch<
+		React.SetStateAction<('none' | 'accepts' | 'declines')[]>
+	>;
 }) {
-	const [status, setStatus] = React.useState<'none' | 'accepts' | 'declines'>(
-		loadedFromServer
-			? formData.afternoon || formData.ceremony || formData.evening
-				? 'accepts'
-				: 'declines'
-			: 'none'
-	);
 	const [dietary, setDietary] = React.useState<
 		'vegetarian' | 'pescetarian' | 'none' | 'other'
 	>(
@@ -483,24 +527,38 @@ function RSVPFormSection({
 			<Accordion.Content>
 				<fieldset className='flex max-w-md gap-4'>
 					<div className='flex items-center gap-2'>
-						<Radio
+						{/*We use circular checkboxes instead of radio buttons because the radio buttons were buggy and were not always displaying their state correctly*/}
+						<Checkbox
+							style={{ clipPath: 'circle(46% at 50% 50%)' }}
+							name='accept'
 							id='accept'
-							value='accept'
 							checked={status === 'accepts'}
 							onChange={(e) => {
-								setStatus(e.target.checked ? 'accepts' : 'declines');
+								setStatuses((c) => {
+									const newStatuses = c.slice();
+									newStatuses[index] = e.target.checked
+										? 'accepts'
+										: 'declines';
+									return newStatuses;
+								});
 							}}
 						/>
-
 						<Label htmlFor='accept'>Excitedly accepts!</Label>
 					</div>
 					<div className='flex items-center gap-2'>
-						<Radio
+						<Checkbox
+							style={{ clipPath: 'circle(46% at 50% 50%)' }}
+							name='decline'
 							id='decline'
-							value='decline'
 							checked={status === 'declines'}
 							onChange={(e) => {
-								setStatus(e.target.checked ? 'declines' : 'accepts');
+								setStatuses((c) => {
+									const newStatuses = c.slice();
+									newStatuses[index] = e.target.checked
+										? 'declines'
+										: 'accepts';
+									return newStatuses;
+								});
 							}}
 						/>
 						<Label htmlFor='decline'>{`Regretfully declines`}</Label>
@@ -515,6 +573,7 @@ function RSVPFormSection({
 							</legend>
 							<div className='flex items-center gap-2'>
 								<Checkbox
+									name='ceremony'
 									id='ceremony'
 									required={
 										!formData.afternoon &&
@@ -538,12 +597,14 @@ function RSVPFormSection({
 							{invitedToAfternoon && (
 								<div className='flex items-center gap-2'>
 									<Checkbox
+										name='afternoon'
 										id='afternoon'
 										required={
 											!formData.afternoon &&
 											!formData.ceremony &&
 											!formData.evening
 										}
+										checked={formData.afternoon}
 										onChange={(e) => {
 											setFormData((c) => {
 												const newData = c.slice();
@@ -560,12 +621,14 @@ function RSVPFormSection({
 							)}
 							<div className='flex items-center gap-2'>
 								<Checkbox
+									name='evening'
 									id='evening'
 									required={
 										!formData.afternoon &&
 										!formData.ceremony &&
 										!formData.evening
 									}
+									checked={formData.evening}
 									onChange={(e) => {
 										setFormData((c) => {
 											const newData = c.slice();
@@ -590,6 +653,7 @@ function RSVPFormSection({
 										/>
 									</div>
 									<Select
+										name='dietary'
 										id='dietary'
 										required
 										onChange={(e) => {
@@ -626,11 +690,12 @@ function RSVPFormSection({
 										/>
 
 										<Textarea
+											name='dietarydetail'
 											id='dietarydetail'
 											required
 											value={formData.dietary}
 											placeholder='Detail your dietary requirements here'
-											rows={12}
+											rows={6}
 											onChange={(e) => {
 												setFormData((c) => {
 													const newData = c.slice();
@@ -643,25 +708,28 @@ function RSVPFormSection({
 											}}></Textarea>
 									</div>
 								)}
-								<div className='flex items-center gap-2'>
-									<Checkbox
-										id='alcohol'
-										checked={formData.noAlcohol}
-										onChange={(e) => {
-											setFormData((c) => {
-												const newData = c.slice();
-												newData[index] = {
-													...newData[index],
-													noAlcohol: e.target.checked,
-												};
-												return newData;
-											});
-										}}
-									/>
-									<Label htmlFor='alcohol'>
-										Orange juice in place of alcohol?
-									</Label>
-								</div>
+								{formData.afternoon && (
+									<div className='flex items-center gap-2'>
+										<Checkbox
+											name='alcohol'
+											id='alcohol'
+											checked={formData.noAlcohol}
+											onChange={(e) => {
+												setFormData((c) => {
+													const newData = c.slice();
+													newData[index] = {
+														...newData[index],
+														noAlcohol: e.target.checked,
+													};
+													return newData;
+												});
+											}}
+										/>
+										<Label htmlFor='alcohol'>
+											Orange juice in place of alcohol?
+										</Label>
+									</div>
+								)}
 								<div className='text-gray-500'>
 									<span
 										onClick={() => setShowFoodInfoModal(true)}
@@ -683,15 +751,14 @@ function RSVPFormSection({
 						<div className='max-w-md'>
 							<Label
 								htmlFor='comments'
-								value='Anything else?'
+								value={`Is there anything else you'd like us to know?`}
 							/>
 
 							<Textarea
+								name='comments'
 								id='comments'
-								required
 								value={formData.comments}
-								placeholder={`If there's anything else you'd like us to know, write it here`}
-								rows={12}
+								rows={6}
 								onChange={(e) => {
 									setFormData((c) => {
 										const newData = c.slice();
@@ -733,30 +800,19 @@ function FoodInformationModal({
 						<>
 							<h1 className='text-2xl'>Afternoon reception</h1>
 							<p>
-								At the afternoon reception, everyone with no dietary
-								requirements will be served from the standard menu below. All
-								vegetarians will be served from the vegetarian menu below.
-								Pescetarians will be served from the standard menu where
-								possible, and the vegetarian menu elsewhere. Any other dietary
-								requirements will be catered for separately to fit your personal
-								needs.
+								At the afternoon reception, those with no dietary requirements
+								will receive the same 3-course meal. All vegetarians will be
+								served the same vegetarian 3-course meal. Pescetarians may
+								receive a mixture of both menus. Any other dietary requirements
+								will be catered for separately.
 							</p>
-							<h2 className='text-xl'>Standard menu</h2>
-							<p>To start: a lovely dish</p>
-							<p>Main course: A lovely dish</p>
-							<p>Dessert: A lovely dish</p>
-							<h2 className='text-xl'>Vegetarian menu</h2>
-							<p>To start: a lovely dish</p>
-							<p>Main course: A lovely dish</p>
-							<p>Dessert: A lovely dish</p>
 						</>
 					)}
 					<h1 className='text-2xl'>Evening reception</h1>
 					<p>
-						At the evening reception, a buffet of various foods will be
-						provided, catering for omnivores, pescetarians and vegetarians
-						alike. Other dietary requirements can be catered for separately to
-						fit your personal needs.
+						At the evening reception, a buffet will be provided, which will
+						include some vegetarian food. Other dietary requirements can be
+						catered for separately.
 					</p>
 				</div>
 			</Modal.Body>
@@ -795,10 +851,10 @@ function NameForm({
 	React.useEffect(() => {
 		setNameFormData((c) => {
 			const data = { ...c };
-			data.firstName = data.firstName?.slice(0, 25);
+			data.firstName = data.firstName?.slice(0, RSVP_FIRSTNAME_MAXCHARS);
 			data.firstName =
 				data.firstName.charAt(0).toUpperCase() + data.firstName.slice(1);
-			data.surname = data.surname?.slice(0, 25);
+			data.surname = data.surname?.slice(0, RSVP_SURNAME_MAXCHARS);
 			data.surname =
 				data.surname.charAt(0).toUpperCase() + data.surname.slice(1);
 			return JSON.stringify(data) === JSON.stringify(c) ? c : data;

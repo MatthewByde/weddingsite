@@ -8,6 +8,7 @@
 		"dayjs": "^1.11.10",
 		"flowbite-react": "^0.7.2",
 		"libsodium-wrappers": "^0.7.13",
+		"nodemailer": "^6.9.13",
 		"postcss": "^8.4.35",
 		"postcss-cli": "^11.0.0",
 		"react": "^18.2.0",
@@ -48,6 +49,7 @@
 		"@babel/plugin-proposal-private-property-in-object": "^7.21.11",
 		"@types/libsodium-wrappers": "^0.7.13",
 		"@types/node": "^20.11.20",
+		"@types/nodemailer": "^6.4.14",
 		"@types/react": "^18.2.60",
 		"@types/react-dom": "^18.2.19",
 		"file-loader": "^6.2.0"
