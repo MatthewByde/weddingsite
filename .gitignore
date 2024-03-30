@@ -2,3 +2,4 @@ node_modules/
 pat
 *.pem
 confidential.json
+*.log

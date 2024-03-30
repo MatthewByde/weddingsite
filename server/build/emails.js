@@ -82,7 +82,7 @@ function RSVPEmail({ data }) {
                         people?.map((e, i) => (React.createElement(RSVPEmailSection, { key: i, person: e })))),
                     React.createElement(Hr, null),
                     React.createElement(Section, { style: lowerSection },
-                        React.createElement(Text, { style: cautionText }, `The above RSVP was submitted at ${new Date().toISOString()} by ${submitterName} at ${ip}`))),
+                        React.createElement(Text, { style: cautionText }, `The above RSVP was submitted at ${new Date().toISOString()} by ${submitterName} from ${ip}`))),
                 React.createElement(Text, { style: footerText },
                     'This message was produced by ',
                     React.createElement(Link, { href: 'https://matthewandadelewedding.co.uk', target: '_blank', style: link }, "matthewandadelewedding.co.uk"),

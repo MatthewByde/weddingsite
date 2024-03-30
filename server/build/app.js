@@ -3,32 +3,44 @@ import { sendContactFormEmail, sendEmail, sendRSVPEmail } from './emails.js';
 import { readFileSync, writeFile } from 'fs';
 import { crypto_box_seal, randombytes_buf } from '@devtomio/sodium';
 import emailInfo from './assets/confidential.json' with { type: 'json' };
+import winston from 'winston';
+const logger = winston.createLogger({
+    format: winston.format.json(),
+    transports: [
+        new winston.transports.File({ filename: 'error.log', level: 'warn' }),
+        new winston.transports.File({ filename: 'verbose.log', level: 'verbose' }),
+        new winston.transports.File({ filename: 'info.log', level: 'info' }),
+        new winston.transports.Console({
+            format: winston.format.simple(),
+            level: 'info',
+        }),
+    ],
+});
+logger.info('Starting server');
 const rsvpData = JSON.parse(readFileSync('./build/assets/rsvp.json').toString('utf8'));
+logger.info('Read JSON data');
 const pk = readFileSync('./build/assets/pk');
+logger.info('Read public key');
 const nonces = [];
 function checkNonce(nonce) {
     const NONCE_TIMEOUT = 30000; //ms
     outer: for (let i = 0; i < nonces.length; i++) {
         if (new Date().getTime() >= nonces[i].time + NONCE_TIMEOUT) {
-            console.log("timeout");
             nonces.splice(i, 1);
             i--;
             continue;
         }
         if (nonces[i].nonce.length !== nonce.length) {
-            console.log("length");
             continue;
         }
         for (let j = 0; j < nonce.length; j++) {
             if (nonce[j] !== nonces[i].nonce[j]) {
-                console.log("Not match");
                 continue outer;
             }
         }
         nonces.splice(i, 1); //nonces are single use!
         return true;
     }
-    console.log("false");
     return false;
 }
 export default function main() {
@@ -37,7 +49,7 @@ export default function main() {
     const app = express();
     app.use(express.static('../static'));
     app.listen(port, () => {
-        console.log(`matthewandadelewedding.co.uk server listening on port ${port}`);
+        logger.info(`matthewandadelewedding.co.uk server listening on port ${port}`);
     });
     app.use(express.json());
     sendemailSetupHandler(app);
@@ -49,12 +61,14 @@ export default function main() {
     pkSetupHandler(app);
 }
 function writeJson() {
+    logger.silly('writing json');
     writeFile('./build/assets/rsvp.json', JSON.stringify(rsvpData), { encoding: 'utf-8', flag: 'w', flush: true }, afterWriteJson);
 }
 function afterWriteJson(err) {
+    logger.silly('wrote json');
     setTimeout(writeJson, 5000);
     if (err) {
-        console.error(err);
+        logger.error(err);
         const message = `Notification from server: error when writing json file. ${JSON.stringify(err, Object.getOwnPropertyNames(err))}`;
         sendEmail(message, message, 'Wedding website error notification!', 'Wedding Webserver', emailInfo.contactFormToEmail);
     }
@@ -62,10 +76,11 @@ function afterWriteJson(err) {
 function pkSetupHandler(app) {
     app.get('/api/pk', (_, res) => {
         try {
+            logger.info('Received request for public key');
             res.status(200).json({ pk: Buffer.from(pk).toString('base64') });
         }
         catch (e) {
-            console.error(e);
+            logger.error(e);
             res.status(500).json({
                 errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
             });
@@ -76,20 +91,22 @@ function unsubscribeSetupHandler(app) {
     app.get('/api/unsubscribe', (req, res) => {
         try {
             const inviteId = req.query.id;
-            if (typeof inviteId !== 'string' ||
-                rsvpData[inviteId] === undefined) {
+            if (typeof inviteId !== 'string' || rsvpData[inviteId] === undefined) {
+                logger.warn(`Someone tried to unsubscribe with invalid invite id ${inviteId}`);
                 res.status(400).send('Error 400 - Bad Request: invalid invite id');
                 return;
             }
             if (rsvpData[inviteId].doNotEmail) {
+                logger.info(`Invite ${inviteId} unsubscribed from emails, but was already unsubscribed`);
                 res.status(200).send('You are already unsubscribed.');
                 return;
             }
             rsvpData[inviteId].doNotEmail = true;
+            logger.info(`Invite ${inviteId} unsubscribed from emails`);
             res.status(200).send('You have now been unsubscribed.');
         }
         catch (e) {
-            console.error(e);
+            logger.error(e);
             res.status(500).json({
                 errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
             });
@@ -97,7 +114,6 @@ function unsubscribeSetupHandler(app) {
     });
 }
 //TODO add ability to delete an invite
-//TODO add logs, and log to a log file
 function updatersvpSetupHandler(app) {
     app.post('/api/updatersvp', (req, res) => {
         try {
@@ -105,18 +121,21 @@ function updatersvpSetupHandler(app) {
             if (body.adminAuth) {
                 const nonce = Uint8Array.from(Buffer.from(body.adminAuth, 'base64'));
                 if (!checkNonce(nonce)) {
+                    logger.warn(`updatersvp - incorrect admin credentials provided. inviteid ${body.inviteId}`);
                     res.status(401).json({ errorMessage: 'invalid nonce' });
                     return;
                 }
+                logger.info(`updatersvp received from admin for inviteid ${body.inviteId}`);
                 rsvpData[body.inviteId] = {
                     invitedToAfternoon: body.invitedToAfternoon ??
                         rsvpData[body.inviteId]?.invitedToAfternoon ??
                         false,
                     data: rsvpData[body.inviteId]?.data ?? '',
                     doNotEmail: rsvpData[body.inviteId]?.doNotEmail ?? false,
-                    submittedBy: body.submitterName ??
-                        rsvpData[body.inviteId]?.submittedBy,
-                    peopleOnInvite: body.people?.map(e => e.name) ?? []
+                    submittedBy: body.submitterName ?? rsvpData[body.inviteId]?.submittedBy,
+                    peopleOnInvite: body.people?.map((e) => e.name) ??
+                        rsvpData[body.inviteId]?.peopleOnInvite ??
+                        [],
                 };
                 if (body.people) {
                     const toEncrypt = {
@@ -128,22 +147,24 @@ function updatersvpSetupHandler(app) {
                     const encryptedBinary = crypto_box_seal(new TextEncoder().encode(JSON.stringify(toEncrypt)), pk);
                     rsvpData[body.inviteId].data =
                         Buffer.from(encryptedBinary).toString('base64');
-                    //TODO rsvpData.people = Object.fromEntries(/**remove people on this invite that are no longer on this invite*/);
                 }
                 sendRSVPEmail(body);
                 res.status(200).json({});
             }
             else {
                 if (rsvpData[body.inviteId] === undefined) {
+                    logger.warn(`updatersvp received from normal user ${body.submitterName} with invalid invite ID: ${body.inviteId}`);
                     res.status(400).json({ errorMessage: 'invalid invite ID' });
                     return;
                 }
                 else if (rsvpData[body.inviteId].submittedBy) {
+                    logger.verbose(`updatersvp received from normal user ${body.submitterName}, rsvp already submitted: ${body.inviteId}`);
                     res.status(401).json({
                         errorMessage: `your rsvp has already been submitted by ${rsvpData[body.inviteId].submittedBy}`,
                     });
                     return;
                 }
+                logger.verbose(`updatersvp received from normal user ${body.submitterName}: ${body.inviteId}`);
                 const toEncrypt = {
                     email: body.allowSaveEmail ? body.email : undefined,
                     ip: body.ip,
@@ -159,7 +180,7 @@ function updatersvpSetupHandler(app) {
             }
         }
         catch (e) {
-            console.error(e);
+            logger.error(e);
             res.status(500).json({
                 errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
             });
@@ -171,19 +192,22 @@ function getrsvpSetupHandler(app) {
         try {
             const body = req.body;
             if (!body.nonce) {
+                logger.info("getrsvp request received with no nonce");
                 res.status(400).json({ errorMessage: 'invalid body, no nonce' });
                 return;
             }
             const nonce = Uint8Array.from(Buffer.from(body.nonce, 'base64'));
             if (checkNonce(nonce)) {
+                logger.info("getrsvp request received");
                 res.status(200).json(rsvpData);
             }
             else {
+                logger.warn("getrsvp request received with invalid nonce");
                 res.status(401).json({ errorMessage: 'invalid nonce' });
             }
         }
         catch (e) {
-            console.error(e);
+            logger.error(e);
             res.status(500).json({
                 errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
             });
@@ -193,13 +217,14 @@ function getrsvpSetupHandler(app) {
 function authSetupHandler(app) {
     app.get('/api/auth', (_, res) => {
         try {
+            logger.info("auth request received");
             const nonce = randombytes_buf(32);
             const cipherText = crypto_box_seal(nonce, pk);
             nonces.push({ nonce, time: new Date().getTime() });
             res.json({ nonce: Buffer.from(cipherText).toString('base64') });
         }
         catch (e) {
-            console.error(e);
+            logger.error(e);
             res.status(500).json({
                 errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
             });
@@ -210,17 +235,17 @@ function checkrsvpSetupHandler(app) {
     app.get('/api/checkrsvp', (req, res) => {
         try {
             const name = req.query.name;
-            const inviteId = Object.entries(rsvpData).find((e) => e[1].peopleOnInvite.map(e => e.toLowerCase()).includes(name?.toLowerCase()))?.[0];
+            const inviteId = Object.entries(rsvpData).find((e) => e[1].peopleOnInvite
+                .map((e) => e.toLowerCase())
+                .includes(name?.toLowerCase()))?.[0];
             if (inviteId === undefined) {
+                logger.verbose(`checkrsvp request received with invalid name: ${name} `);
                 res.status(400).json({
                     errorMessage: 'could not find anyone with that name',
                 });
                 return;
             }
-            if (rsvpData[inviteId] === undefined) {
-                res.status(500).json({ errorMessage: 'data unexpectedly missing' });
-                return;
-            }
+            logger.verbose(`checkrsvp request received with name: ${name} for inviteid ${inviteId}`);
             res.status(200).json({
                 submittedBy: rsvpData[inviteId].submittedBy,
                 peopleOnInvite: rsvpData[inviteId].peopleOnInvite,
@@ -229,7 +254,7 @@ function checkrsvpSetupHandler(app) {
             });
         }
         catch (e) {
-            console.error(e);
+            logger.error(e);
             res.status(500).json({
                 errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
             });
@@ -250,16 +275,19 @@ function sendemailSetupHandler(app) {
                 res
                     .status(400)
                     .json({ errorMessage: 'duplicate request, try again later.' });
+                logger.info(`email request from ${body.name} rejected due to duplicate request`);
                 return;
             }
+            logger.verbose(`email request received from ${body.name}`);
             contactFormRequests[JSON.stringify(body)] = time;
             const result = await sendContactFormEmail(body.message, body.subject, body.name, body.email);
+            logger.verbose(`email request from ${body.name} sent successfully`);
             res.status(200).json(result);
         }
         catch (e) {
             contactFormRequests[JSON.stringify(body)] =
                 time - DUPE_TIMEOUT_SUCCESS + DUPE_TIMEOUT_FAIL;
-            console.error(e);
+            logger.error(e);
             res.status(500).json({
                 errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
             });
