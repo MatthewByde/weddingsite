@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { use100vh } from 'react-div-100vh';
 import Divider from './lib/Divider';
 import dayjs from 'dayjs';
+import { ErrorBoundary } from 'react-error-boundary';
 
 const HEADER_SIZE = '80px';
 
@@ -33,13 +34,8 @@ export default function PageWrapper({
 		);
 	}, 1000);
 
-	// const { pathname } = useLocation();
 	const ref = React.useRef<HTMLDivElement>(null);
 	const fullvh = use100vh();
-	//TODO see what this does
-	// React.useEffect(() => {
-	// 	ref.current?.scrollTo({ behavior: 'smooth', top: 0, left: 0 });
-	// }, [pathname]);
 	const { navCollapsed, setNavCollapsed } =
 		React.useContext(NavCollapsedContext);
 	return (
@@ -90,13 +86,39 @@ export default function PageWrapper({
 								fullvh ? `${fullvh}px` : '100vh'
 							} - ${HEADER_SIZE})`,
 						}}>
-						{children}
+						<ErrorBoundary FallbackComponent={FallbackComponent}>
+							{children}
+						</ErrorBoundary>
 					</main>
 				</div>
 			</div>
 
 			<footer></footer>
 		</div>
+	);
+}
+
+function FallbackComponent() {
+	return (
+		<section className='flex flex-col gap-2 items-start py-8 px-8 w-full max-w-3xl text-textColor'>
+			<h1
+				className='text-darkAccentColor'
+				style={{
+					fontFamily: 'argue',
+					fontSize: 'min(max(3.75vw, 2rem), 3.75rem)',
+				}}>
+				Something went wrong
+			</h1>
+			<p>
+				{`If you're seeing this, something went wrong on our end. Sorry! Please try again, or if this is a recurring issue, you can `}
+				<Link
+					className='text-xl underline text-darkAccentColor'
+					to={'/contact'}>
+					contact us
+				</Link>
+				.
+			</p>
+		</section>
 	);
 }
 
