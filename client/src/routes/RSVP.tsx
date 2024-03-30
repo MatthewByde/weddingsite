@@ -13,16 +13,27 @@ import React from 'react';
 import PageWrapper from '../PageWrapper';
 import Form from '../lib/Form';
 import {
+	AuthRequestResponse,
 	CheckRSVPRequestResponse,
+	GetRSVPRequestBody,
+	GetRSVPRequestResponse,
 	RSVPRawJSONSchema,
 	ResponseType,
 	UpdateRSVPRequestBody,
 	UpdateRSVPRequestResponse,
 } from '../../../server/src/constants';
 import { Link } from 'react-router-dom';
-import { HiEnvelope, HiMiniArrowLeftOnRectangle } from 'react-icons/hi2';
+import {
+	HiChevronDown,
+	HiEnvelope,
+	HiMiniArrowLeftOnRectangle,
+} from 'react-icons/hi2';
+import { AdminKeyContext } from '../App';
+import { crypto_box_seal_open } from 'libsodium-wrappers';
+import { ab2b64, b642uint8array } from '../lib/Utils';
 
 export default function RSVP() {
+	const { keys } = React.useContext(AdminKeyContext);
 	const [checkRsvpRequestResponse, setCheckRsvpRequestResponse] =
 		React.useState<
 			(CheckRSVPRequestResponse<'success'> & { submitterName: string }) | null
@@ -49,18 +60,40 @@ export default function RSVP() {
 							<HiMiniArrowLeftOnRectangle className='w-6 h-6' />
 							Log out
 						</Button>
-						{checkRsvpRequestResponse.responded ? (
-							<p className='pt-4'>
-								{`An RSVP response for your invitation has already been submitted. If you would like to check or modify your response, please `}
-								<Link
-									className='text-xl underline text-darkAccentColor'
-									to={'/contact'}>
-									contact us
-								</Link>
-								.
-							</p>
+
+						{keys ? (
+							checkRsvpRequestResponse.submittedBy ? (
+								<>
+									<p className='pt-4'>
+										{`An RSVP response for this invitation has been submitted by ${checkRsvpRequestResponse.submittedBy}.`}
+									</p>
+									<RSVPForm
+										checkRsvpResponse={checkRsvpRequestResponse}
+										keys={keys}></RSVPForm>
+								</>
+							) : (
+								<p className='pt-4'>
+									Nobody has RSVPd to this invitation yet. It cannot be viewed
+									in admin mode.
+								</p>
+							)
 						) : (
-							<RSVPForm checkRsvpResponse={checkRsvpRequestResponse}></RSVPForm>
+							<>
+								{checkRsvpRequestResponse.submittedBy ? (
+									<p className='pt-4'>
+										{`An RSVP response for your invitation has already been submitted by ${checkRsvpRequestResponse.submittedBy}. If you would like to check or modify your response, please `}
+										<Link
+											className='text-xl underline text-darkAccentColor'
+											to={'/contact'}>
+											contact us
+										</Link>
+										.
+									</p>
+								) : (
+									<RSVPForm
+										checkRsvpResponse={checkRsvpRequestResponse}></RSVPForm>
+								)}
+							</>
 						)}
 					</>
 				) : (
@@ -90,22 +123,51 @@ export default function RSVP() {
 }
 
 type RSVPFormData = Exclude<
-	RSVPRawJSONSchema['invites'][number]['data']['people'],
+	RSVPRawJSONSchema[string]['data']['people'],
 	undefined
 >;
 //TODO test unsubscribing
-//TODO test login system
-//TODO support for login + overwrite (read the data on an invite into the form?)
 //TODO support for unnamed +1s
 //TODO support for returning all data, formatting as csv and downloading
+//TODO testing and styling
+//TODO input length validation like for contact form for RSVP form & name form. Name form done locally but not serverside currently.
+//TODO error bounadries eg for 404s as well
+//TODO use localstorage for storing response progress
+//TODO test email styling
+
+async function getNonce(keys: { adminKey: Uint8Array; publicKey: Uint8Array }) {
+	const nonceResp = await fetch('/api/auth', {
+		method: 'GET',
+		headers: {
+			Accept: 'application/json',
+			'Content-Type': 'application/json',
+		},
+	});
+	const nonceBody = (await nonceResp.json()) as AuthRequestResponse;
+	if (!nonceResp.ok || 'errorMessage' in nonceBody) {
+		throw new Error(
+			`Error ${nonceResp.status} - ${nonceResp.statusText}: ${
+				'errorMessage' in nonceBody ? nonceBody.errorMessage : 'unknown cause'
+			}`
+		);
+	}
+	const decrypted = crypto_box_seal_open(
+		b642uint8array(nonceBody.nonce),
+		keys.publicKey,
+		keys.adminKey
+	);
+	return ab2b64(decrypted.buffer);
+}
 
 function RSVPForm({
 	checkRsvpResponse,
+	keys,
 }: {
 	checkRsvpResponse: Exclude<
 		CheckRSVPRequestResponse<'success'> & { submitterName: string },
 		undefined
 	>;
+	keys?: { adminKey: Uint8Array; publicKey: Uint8Array } | null;
 }) {
 	const [submitted, setSubmitted] = React.useState(false);
 	const [toastType, setToastType] = React.useState<
@@ -113,25 +175,124 @@ function RSVPForm({
 	>('none');
 	const [toastText, setToastText] = React.useState('Unknown error');
 	const [rsvpFormData, setRsvpFormData] = React.useState<RSVPFormData>(
-		checkRsvpResponse.peopleOnInvite.map((e) => ({ name: e }))
+		keys ? [] : checkRsvpResponse.peopleOnInvite.map((e) => ({ name: e }))
 	);
 	const [email, setEmail] = React.useState('');
 	const [allowSaveEmail, setAllowSaveEmail] = React.useState(true);
+	const [expandedIndex, setExpandedIndex] = React.useState(0);
+
+	React.useEffect(() => {
+		localStorage.setItem(
+			checkRsvpResponse.submitterName.toLowerCase(),
+			JSON.stringify(rsvpFormData)
+		);
+	}, [checkRsvpResponse.submitterName, rsvpFormData]);
+
+	React.useEffect(() => {
+		let isSubscribed = true;
+		async function loadFormData() {
+			if (!keys) {
+				const stored = localStorage.getItem(
+					checkRsvpResponse.submitterName.toLowerCase()
+				);
+				if (stored && isSubscribed) {
+					setRsvpFormData(JSON.parse(stored));
+				}
+				return;
+			}
+			try {
+				const requestBody: GetRSVPRequestBody = {
+					nonce: await getNonce(keys),
+				};
+				const resp = await fetch('api/getrsvp', {
+					method: 'POST',
+					body: JSON.stringify(requestBody),
+					headers: {
+						Accept: 'application/json',
+						'Content-Type': 'application/json',
+					},
+				});
+				const body = (await resp.json()) as GetRSVPRequestResponse;
+				if (!resp.ok || 'errorMessage' in body) {
+					console.error(
+						`Error ${resp.status} - ${resp.statusText}: ${
+							'errorMessage' in body ? body.errorMessage : 'unknown cause'
+						}`
+					);
+					return;
+				}
+				const invite = body[checkRsvpResponse.inviteId];
+				if (!invite) {
+					console.error(
+						`inviteId ${checkRsvpResponse.inviteId} not in response from server`
+					);
+					return;
+				}
+				const decryptedInviteData = crypto_box_seal_open(
+					b642uint8array(invite.data),
+					keys.publicKey,
+					keys.adminKey
+				);
+				const decoded = new TextDecoder().decode(decryptedInviteData);
+				const json: RSVPRawJSONSchema[string]['data'] = JSON.parse(decoded);
+				if (isSubscribed) {
+					setEmail(json.email ?? '');
+					setAllowSaveEmail(json.email ? true : false);
+					setRsvpFormData(json.people ?? []);
+				}
+			} catch (e) {
+				console.error(e);
+			}
+		}
+
+		if (keys) {
+			loadFormData();
+		}
+		return () => {
+			isSubscribed = false;
+		};
+	}, [checkRsvpResponse.inviteId, checkRsvpResponse.submitterName, keys]);
 
 	const onSubmit = React.useCallback(async () => {
-		const ip = await fetch('https://api.ipify.org?format=json')
-			.then((response) => response.json())
-			.then((json) => json.ip as string)
-			.catch(() => 'unknown');
-
-		const body: UpdateRSVPRequestBody = {
-			inviteId: checkRsvpResponse.inviteId,
-			allowSaveEmail: allowSaveEmail,
-			email: email,
-			ip: ip,
-			people: rsvpFormData,
-			submitterName: checkRsvpResponse.submitterName,
-		};
+		let body: UpdateRSVPRequestBody;
+		if (keys) {
+			if (rsvpFormData.length === 0) {
+				setToastText(
+					`Not submitting because form data was not correctly loaded from server in the beginning`
+				);
+				setToastType('error');
+				return;
+			}
+			try {
+				body = {
+					inviteId: checkRsvpResponse.inviteId,
+					allowSaveEmail: allowSaveEmail,
+					email: email,
+					people: rsvpFormData,
+					adminAuth: await getNonce(keys),
+				};
+			} catch (e) {
+				console.error(e);
+				setToastText(
+					`Error: ${JSON.stringify(e, Object.getOwnPropertyNames(e))}`
+				);
+				setToastType('error');
+				return;
+			}
+		} else {
+			const ip = await fetch('https://api.ipify.org?format=json')
+				.then((response) => response.json())
+				.then((json) => json.ip as string)
+				.catch(() => 'unknown');
+			body = {
+				inviteId: checkRsvpResponse.inviteId,
+				allowSaveEmail: allowSaveEmail,
+				email: email,
+				ip: ip,
+				people: rsvpFormData,
+				submitterName: checkRsvpResponse.submitterName,
+			};
+		}
 		try {
 			const resp = await fetch('/api/updatersvp', {
 				body: JSON.stringify(body),
@@ -162,9 +323,9 @@ function RSVPForm({
 		checkRsvpResponse.inviteId,
 		checkRsvpResponse.submitterName,
 		email,
+		keys,
 		rsvpFormData,
 	]);
-	//TODO testing and styling
 	return (
 		<>
 			{submitted ? (
@@ -183,9 +344,12 @@ function RSVPForm({
 					submitButtonText='Submit'>
 					<Accordion>
 						{rsvpFormData.map((e, i) => {
-							//TODO accordion configure collapsing to only show one person at a time, and start with first one expanded
 							return (
 								<RSVPFormSection
+									setExpandedIndex={setExpandedIndex}
+									expandedIndex={expandedIndex}
+									key={i}
+									loadedFromServer={keys ? true : false}
 									formData={e}
 									setFormData={setRsvpFormData}
 									index={i}
@@ -235,46 +399,72 @@ function RSVPFormSection({
 	formData,
 	setFormData,
 	invitedToAfternoon,
+	loadedFromServer,
+	expandedIndex,
+	setExpandedIndex,
 }: {
 	index: number;
 	formData: RSVPFormData[number];
 	setFormData: React.Dispatch<React.SetStateAction<RSVPFormData>>;
 	invitedToAfternoon: boolean;
+	loadedFromServer: boolean;
+	expandedIndex: number;
+	setExpandedIndex: React.Dispatch<React.SetStateAction<number>>;
 }) {
 	const [status, setStatus] = React.useState<'none' | 'accepts' | 'declines'>(
-		'none'
+		loadedFromServer
+			? formData.afternoon || formData.ceremony || formData.evening
+				? 'accepts'
+				: 'declines'
+			: 'none'
 	);
 	const [dietary, setDietary] = React.useState<
 		'vegetarian' | 'pescetarian' | 'none' | 'other'
-	>('none');
+	>(
+		formData.dietary
+			? 'other'
+			: formData.vegetarian
+			? 'vegetarian'
+			: formData.pescetarian
+			? 'pescetarian'
+			: 'none'
+	);
 	const [showFoodInfoModal, setShowFoodInfoModal] = React.useState(false);
 	React.useEffect(() => {
 		if (status === 'none') {
-			setFormData((c) => ({
-				...c,
-				[index]: {
-					...c[index],
+			setFormData((c) => {
+				const newData = c.slice();
+				newData[index] = {
+					...newData[index],
 					afternoon: false,
 					evening: false,
 					ceremony: false,
-				},
-			}));
+				};
+				return newData;
+			});
 		}
 	}, [index, setFormData, status]);
 	React.useEffect(() => {
-		setFormData((c) => ({
-			...c,
-			[index]: {
-				...c[index],
+		setFormData((c) => {
+			const newData = c.slice();
+			newData[index] = {
+				...newData[index],
 				vegetarian: dietary === 'vegetarian',
 				pescetarian: dietary === 'pescetarian',
 				dietary: dietary === 'other' ? c[index].dietary : undefined,
-			},
-		}));
+			};
+			return newData;
+		});
 	}, [dietary, index, setFormData]);
+
 	return (
-		<Accordion.Panel>
-			<Accordion.Title>{`${index}. ${formData.name}`}</Accordion.Title>
+		<Accordion.Panel
+			isOpen={expandedIndex === index}
+			arrowIcon={HiChevronDown}>
+			<Accordion.Title
+				onClick={() => {
+					setExpandedIndex((c) => (c === index ? -1 : index));
+				}}>{`${index + 1}. ${formData.name}`}</Accordion.Title>
 			<Accordion.Content>
 				<fieldset className='flex max-w-md gap-4'>
 					<div className='flex items-center gap-2'>
@@ -282,8 +472,8 @@ function RSVPFormSection({
 							id='accept'
 							value='accept'
 							checked={status === 'accepts'}
-							onSelect={() => {
-								setStatus('accepts');
+							onChange={(e) => {
+								setStatus(e.target.checked ? 'accepts' : 'declines');
 							}}
 						/>
 
@@ -294,11 +484,11 @@ function RSVPFormSection({
 							id='decline'
 							value='decline'
 							checked={status === 'declines'}
-							onSelect={() => {
-								setStatus('declines');
+							onChange={(e) => {
+								setStatus(e.target.checked ? 'declines' : 'accepts');
 							}}
 						/>
-						<Label htmlFor='decline'>{`Regretfully declines :(`}</Label>
+						<Label htmlFor='decline'>{`Regretfully declines`}</Label>
 					</div>
 				</fieldset>
 				{status === 'accepts' ? (
@@ -318,10 +508,14 @@ function RSVPFormSection({
 									}
 									checked={formData.ceremony}
 									onChange={(e) => {
-										setFormData((c) => ({
-											...c,
-											[index]: { ...c[index], ceremony: e.target.checked },
-										}));
+										setFormData((c) => {
+											const newData = c.slice();
+											newData[index] = {
+												...newData[index],
+												ceremony: e.target.checked,
+											};
+											return newData;
+										});
 									}}
 								/>
 								<Label htmlFor='ceremony'>Wedding ceremony</Label>
@@ -336,10 +530,14 @@ function RSVPFormSection({
 											!formData.evening
 										}
 										onChange={(e) => {
-											setFormData((c) => ({
-												...c,
-												[index]: { ...c[index], afternoon: e.target.checked },
-											}));
+											setFormData((c) => {
+												const newData = c.slice();
+												newData[index] = {
+													...newData[index],
+													afternoon: e.target.checked,
+												};
+												return newData;
+											});
 										}}
 									/>
 									<Label htmlFor='afternoon'>Afternoon reception</Label>
@@ -354,10 +552,14 @@ function RSVPFormSection({
 										!formData.evening
 									}
 									onChange={(e) => {
-										setFormData((c) => ({
-											...c,
-											[index]: { ...c[index], evening: e.target.checked },
-										}));
+										setFormData((c) => {
+											const newData = c.slice();
+											newData[index] = {
+												...newData[index],
+												evening: e.target.checked,
+											};
+											return newData;
+										});
 									}}
 								/>
 								<Label htmlFor='evening'>Evening reception</Label>
@@ -383,6 +585,16 @@ function RSVPFormSection({
 													| 'pescetarian'
 													| 'other'
 											);
+											if (e.target.value !== 'other') {
+												setFormData((c) => {
+													const newData = c.slice();
+													newData[index] = {
+														...newData[index],
+														dietary: undefined,
+													};
+													return newData;
+												});
+											}
 										}}
 										value={dietary}>
 										<option value={'none'}>No dietary requirements</option>
@@ -405,10 +617,14 @@ function RSVPFormSection({
 											placeholder='Detail your dietary requirements here'
 											rows={12}
 											onChange={(e) => {
-												setFormData((c) => ({
-													...c,
-													[index]: { ...c[index], dietary: e.target.value },
-												}));
+												setFormData((c) => {
+													const newData = c.slice();
+													newData[index] = {
+														...newData[index],
+														dietary: e.target.value,
+													};
+													return newData;
+												});
 											}}></Textarea>
 									</div>
 								)}
@@ -417,10 +633,14 @@ function RSVPFormSection({
 										id='alcohol'
 										checked={formData.noAlcohol}
 										onChange={(e) => {
-											setFormData((c) => ({
-												...c,
-												[index]: { ...c[index], noAlcohol: e.target.checked },
-											}));
+											setFormData((c) => {
+												const newData = c.slice();
+												newData[index] = {
+													...newData[index],
+													noAlcohol: e.target.checked,
+												};
+												return newData;
+											});
 										}}
 									/>
 									<Label htmlFor='alcohol'>
@@ -458,10 +678,14 @@ function RSVPFormSection({
 								placeholder={`If there's anything else you'd like us to know, write it here`}
 								rows={12}
 								onChange={(e) => {
-									setFormData((c) => ({
-										...c,
-										[index]: { ...c[index], comments: e.target.value },
-									}));
+									setFormData((c) => {
+										const newData = c.slice();
+										newData[index] = {
+											...newData[index],
+											comments: e.target.value,
+										};
+										return newData;
+									});
 								}}></Textarea>
 						</div>
 					</>
@@ -557,12 +781,16 @@ function NameForm({
 		setNameFormData((c) => {
 			const data = { ...c };
 			data.firstName = data.firstName?.slice(0, 25);
+			data.firstName =
+				data.firstName.charAt(0).toUpperCase() + data.firstName.slice(1);
 			data.surname = data.surname?.slice(0, 25);
-			return data;
+			data.surname =
+				data.surname.charAt(0).toUpperCase() + data.surname.slice(1);
+			return JSON.stringify(data) === JSON.stringify(c) ? c : data;
 		});
 	}, [nameFormData]);
 	const onSubmit = React.useCallback(async () => {
-		const name = (nameFormData.firstName + nameFormData.surname).toUpperCase();
+		const name = nameFormData.firstName + ' ' + nameFormData.surname;
 		try {
 			const response = await fetch(`/api/checkrsvp?name=${name}`, {
 				method: 'GET',

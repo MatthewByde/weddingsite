@@ -35,7 +35,7 @@ export default function Contact() {
 			} else {
 				body.email = body.email.slice(0, 64);
 			}
-			return body;
+			return JSON.stringify(body) === JSON.stringify(c) ? c : body;
 		});
 	}, [emailRequestBody]);
 	const onSubmit = React.useCallback(async () => {

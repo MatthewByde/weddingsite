@@ -7,6 +7,8 @@ import FAQ from './routes/FAQ';
 import Travel from './routes/Travel';
 import Login from './routes/Login';
 import About from './routes/About';
+import Livestream from './routes/Livestream';
+import Photos from './routes/Photos';
 
 export const routes = [
 	{ path: '/', element: <Home></Home> },

@@ -1,10 +1,12 @@
 import express from 'express';
-import { sendContactFormEmail } from './emails.js';
+import { sendContactFormEmail, sendEmail, sendRSVPEmail } from './emails.js';
 import {
 	AuthRequestResponse,
 	CheckRSVPRequestResponse,
 	GetRSVPRequestBody,
 	GetRSVPRequestResponse,
+	PKRequestResponse,
+	RSVPRawJSONSchema,
 	RSVPStoredJSONSchema,
 	ResponseType,
 	SendEmailRequestBody,
@@ -12,52 +14,49 @@ import {
 	UpdateRSVPRequestBody,
 	UpdateRSVPRequestResponse,
 } from './constants.js';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFile } from 'fs';
 import { crypto_box_seal, randombytes_buf } from '@devtomio/sodium';
+import emailInfo from './assets/confidential.json' with {type: 'json'};
 
-const rsvpData = (() => {
-	const json = JSON.parse(
+const rsvpData = JSON.parse( 
 		readFileSync('./build/assets/rsvp.json').toString('utf8')
 	) as RSVPStoredJSONSchema;
-	if (json.invites === undefined) {
-		json.invites = {};
-	}
-	if (json.people === undefined) {
-		json.people = {};
-	}
-	return json;
-})() as RSVPStoredJSONSchema;
 
 const pk = readFileSync('./build/assets/pk');
 
 const nonces: {
 	nonce: Uint8Array;
 	time: number;
-}[] = [];
+}[] = []; 
 
 function checkNonce(nonce: Uint8Array): boolean {
-	const NONCE_TIMEOUT = 120000;
+	const NONCE_TIMEOUT = 30000; //ms
 	outer: for (let i = 0; i < nonces.length; i++) {
 		if (new Date().getTime() >= nonces[i].time + NONCE_TIMEOUT) {
+			console.log("timeout");
 			nonces.splice(i, 1);
 			i--;
 			continue;
 		}
 		if (nonces[i].nonce.length !== nonce.length) {
+			console.log("length");
 			continue;
 		}
 		for (let j = 0; j < nonce.length; j++) {
 			if (nonce[j] !== nonces[i].nonce[j]) {
+				console.log("Not match");
 				continue outer;
 			}
 		}
 		nonces.splice(i, 1); //nonces are single use!
 		return true;
 	}
+	console.log("false");
 	return false;
 }
 
 export default function main() {
+	writeJson();
 	const port = 8080;
 	const app = express();
 	app.use(express.static('../static'));
@@ -74,25 +73,40 @@ export default function main() {
 	authSetupHandler(app);
 	updatersvpSetupHandler(app);
 	unsubscribeSetupHandler(app);
+	pkSetupHandler(app);
 }
 
-function unsubscribeSetupHandler(app: express.Express) {
-	app.get('/api/unsubscribe', (req, res) => {
+function writeJson() {
+	writeFile(
+		'./build/assets/rsvp.json',
+		JSON.stringify(rsvpData),
+		{ encoding: 'utf-8', flag: 'w', flush: true },
+		afterWriteJson
+	);
+}
+
+function afterWriteJson(err: unknown) {
+	setTimeout(writeJson, 5000);
+	if (err) {
+		console.error(err);
+		const message = `Notification from server: error when writing json file. ${JSON.stringify(
+			err,
+			Object.getOwnPropertyNames(err)
+		)}`;
+		sendEmail(
+			message,
+			message,
+			'Wedding website error notification!',
+			'Wedding Webserver',
+			emailInfo.contactFormToEmail
+		);
+	}
+}
+
+function pkSetupHandler(app: express.Express) {
+	app.get('/api/pk', (_, res: express.Response<PKRequestResponse>) => {
 		try {
-			const inviteId = req.query.id;
-			if (
-				typeof inviteId !== 'string' ||
-				rsvpData.invites[inviteId] === undefined
-			) {
-				res.status(400).send('Error 400 - Bad Request: invalid invite id');
-				return;
-			}
-			if (rsvpData.invites[inviteId].doNotEmail) {
-				res.status(200).send('You are already unsubscribed.');
-				return;
-			}
-			rsvpData.invites[inviteId].doNotEmail = true;
-			res.status(200).send('You have now been unsubscribed.');
+			res.status(200).json({ pk: Buffer.from(pk).toString('base64') });
 		} catch (e) {
 			console.error(e);
 			res.status(500).json({
@@ -102,29 +116,114 @@ function unsubscribeSetupHandler(app: express.Express) {
 	});
 }
 
+function unsubscribeSetupHandler(app: express.Express) {
+	app.get('/api/unsubscribe', (req, res) => {
+		try {
+			const inviteId = req.query.id;
+			if (
+				typeof inviteId !== 'string' ||
+				rsvpData[inviteId] === undefined
+			) {
+				res.status(400).send('Error 400 - Bad Request: invalid invite id');
+				return;
+			}
+			if (rsvpData[inviteId].doNotEmail) {
+				res.status(200).send('You are already unsubscribed.');
+				return;
+			}
+			rsvpData[inviteId].doNotEmail = true;
+			res.status(200).send('You have now been unsubscribed.');
+		} catch (e) {
+			console.error(e);
+			res.status(500).json({
+				errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+			});
+		}
+	});
+}
+//TODO add ability to delete an invite
 function updatersvpSetupHandler(app: express.Express) {
 	app.post(
 		'/api/updatersvp',
 		(req, res: express.Response<UpdateRSVPRequestResponse>) => {
-			const body = req.body() as UpdateRSVPRequestBody;
-			if (body.adminAuth) {
-				//TODO
-			} else {
-				if (rsvpData.invites[body.inviteId] === undefined) {
-					res.status(400).json({ errorMessage: 'invalid invite ID' });
-				} else if (rsvpData.invites[body.inviteId].responded) {
-					res
-						.status(401)
-						.json({ errorMessage: 'you have already submitted your rsvp!' });
+			try {
+				const body = req.body as UpdateRSVPRequestBody;
+				if (body.adminAuth) {
+					const nonce = Uint8Array.from(
+						Buffer.from(body.adminAuth, 'base64')
+					);
+					if (!checkNonce(nonce)) {
+						res.status(401).json({ errorMessage: 'invalid nonce' });
+						return;
+					}
+					rsvpData[body.inviteId] = {
+						invitedToAfternoon:
+							body.invitedToAfternoon ??
+							rsvpData[body.inviteId]?.invitedToAfternoon ??
+							false,
+						data: rsvpData[body.inviteId]?.data ?? '',
+						doNotEmail: rsvpData[body.inviteId]?.doNotEmail ?? false,
+						submittedBy:
+							body.submitterName ??
+							rsvpData[body.inviteId]?.submittedBy,
+						peopleOnInvite: body.people?.map(e=>e.name) ?? []
+					};
+					if (body.people) {
+						const toEncrypt: RSVPRawJSONSchema[string]['data'] = {
+							email: body.allowSaveEmail ? body.email : undefined,
+							ip: body.ip,
+							time: new Date().toISOString(),
+							people: body.people,
+						};
+						const encryptedBinary = crypto_box_seal(
+							new TextEncoder().encode(JSON.stringify(toEncrypt)),
+							pk
+						);
+						rsvpData[body.inviteId].data =
+							Buffer.from(encryptedBinary).toString('base64');
+
+						//TODO rsvpData.people = Object.fromEntries(/**remove people on this invite that are no longer on this invite*/);
+					}
+					sendRSVPEmail(body);
+					res.status(200).json({});
+				} else {
+					if (rsvpData[body.inviteId] === undefined) {
+						res.status(400).json({ errorMessage: 'invalid invite ID' });
+						return;
+					} else if (rsvpData[body.inviteId].submittedBy) {
+						res.status(401).json({
+							errorMessage: `your rsvp has already been submitted by ${
+								rsvpData[body.inviteId].submittedBy
+							}`,
+						});
+						return;
+					}
+					const toEncrypt: RSVPRawJSONSchema[string]['data'] = {
+						email: body.allowSaveEmail ? body.email : undefined,
+						ip: body.ip,
+						time: new Date().toISOString(),
+						people: body.people,
+					};
+					const encryptedBinary = crypto_box_seal(
+						new TextEncoder().encode(JSON.stringify(toEncrypt)),
+						pk
+					);
+					const encryptedString =
+						Buffer.from(encryptedBinary).toString('base64');
+					rsvpData[body.inviteId].submittedBy = body.submitterName;
+					rsvpData[body.inviteId].data = encryptedString;
+					sendRSVPEmail(body);
+					res.status(200).json({});
 				}
-				//TODO handle RSVP - send email, encrypt, update JSON
+			} catch (e) {
+				console.error(e);
+				res.status(500).json({
+					errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+				});
 			}
 		}
 	);
 }
-//TODO setInterval to save the JSON to file
-
-//TODO client-side encryption for updateRsvp - use api request to return the public key to client, and have client encrypt data if it can. if it can't, continue as we do currently, and encrypt it severside. If it can, have it do so, and don't encrypt it serverside.
 
 function getrsvpSetupHandler(app: express.Express) {
 	app.post(
@@ -136,13 +235,14 @@ function getrsvpSetupHandler(app: express.Express) {
 					res.status(400).json({ errorMessage: 'invalid body, no nonce' });
 					return;
 				}
-				const nonce = new Uint8Array(Buffer.from(body.nonce, 'base64').buffer);
+				const nonce = Uint8Array.from(Buffer.from(body.nonce, 'base64'));
 				if (checkNonce(nonce)) {
 					res.status(200).json(rsvpData);
 				} else {
 					res.status(401).json({ errorMessage: 'invalid nonce' });
 				}
 			} catch (e) {
+				console.error(e);
 				res.status(500).json({
 					errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
 				});
@@ -159,6 +259,7 @@ function authSetupHandler(app: express.Express) {
 			nonces.push({ nonce, time: new Date().getTime() });
 			res.json({ nonce: Buffer.from(cipherText).toString('base64') });
 		} catch (e) {
+			console.error(e);
 			res.status(500).json({
 				errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
 			});
@@ -172,23 +273,21 @@ function checkrsvpSetupHandler(app: express.Express) {
 		(req, res: express.Response<CheckRSVPRequestResponse<ResponseType>>) => {
 			try {
 				const name = req.query.name;
-				const inviteId = rsvpData.people[name as string];
+				const inviteId = Object.entries(rsvpData).find((e) => e[1].peopleOnInvite.map(e=>e.toLowerCase()).includes((name as string)?.toLowerCase()))?.[0];
 				if (inviteId === undefined) {
 					res.status(400).json({
 						errorMessage: 'could not find anyone with that name',
 					});
 					return;
 				}
-				if (rsvpData.invites[inviteId] === undefined) {
+				if (rsvpData[inviteId] === undefined) {
 					res.status(500).json({ errorMessage: 'data unexpectedly missing' });
 					return;
 				}
 				res.status(200).json({
-					responded: rsvpData.invites[inviteId].responded,
-					peopleOnInvite: Object.entries(rsvpData.people).flatMap((e) =>
-						e[1] === inviteId ? e[0] : []
-					),
-					invitedToAfternoon: rsvpData.invites[inviteId].invitedToAfternoon,
+					submittedBy: rsvpData[inviteId].submittedBy,
+					peopleOnInvite: rsvpData[inviteId].peopleOnInvite,
+					invitedToAfternoon: rsvpData[inviteId].invitedToAfternoon,
 					inviteId,
 				});
 			} catch (e) {
@@ -233,7 +332,7 @@ function sendemailSetupHandler(app: express.Express) {
 			} catch (e) {
 				contactFormRequests[JSON.stringify(body)] =
 					time - DUPE_TIMEOUT_SUCCESS + DUPE_TIMEOUT_FAIL;
-				console.log(e);
+				console.error(e);
 				res.status(500).json({
 					errorMessage: JSON.stringify(e, Object.getOwnPropertyNames(e)),
 				});

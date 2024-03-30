@@ -12,6 +12,12 @@ export const RSVP_SURNAME_MAXCHARS = 25;
 export const RSVP_DIETARY_MAXCHARS = 1000;
 export const RSVP_COMMENTS_MAXCHARS = 1000;
 
+export type PKRequestResponse =
+	| {
+			pk: string;
+	  }
+	| { errorMessage: string };
+
 export type SendEmailRequestBody = {
 	name: string;
 	email: string;
@@ -24,57 +30,47 @@ export type SendEmailRequestResponse =
 	| { errorMessage: string };
 
 export type RSVPStoredJSONSchema = {
-	invites: {
-		[inviteId: string]: {
-			doNotEmail: boolean;
-			responded: boolean;
-			invitedToAfternoon: boolean;
-			data: string;
-			names: string[];
-		};
-	};
-	people: {
-		[name: string]: string;
+	[inviteId: string]: {
+		doNotEmail: boolean;
+		submittedBy?: string;
+		invitedToAfternoon: boolean;
+		data: string;
+		peopleOnInvite: string[];
 	};
 };
 
 export type RSVPRawJSONSchema = {
-	people: {
-		[name: string]: string;
-	};
-	invites: {
-		[inviteId: string]: {
-			doNotEmail: boolean;
-			responded: boolean;
-			invitedToAfternoon: boolean;
-			names: string[];
-			data: {
-				email?: string;
-				time?: string;
-				ip?: string;
-				people?: {
-					afternoon?: boolean;
-					evening?: boolean;
-					ceremony?: boolean;
-					dietary?: string;
-					comments?: string;
-					noAlcohol?: boolean;
-					vegetarian?: boolean;
-					pescetarian?: boolean;
-					name?: string;
-				}[];
-			};
+	[inviteId: string]: {
+		doNotEmail: boolean;
+		submittedBy?: string;
+		invitedToAfternoon: boolean;
+		peopleOnInvite: string[];
+		data: {
+			email?: string;
+			time?: string;
+			ip?: string;
+			people?: {
+				afternoon?: boolean;
+				evening?: boolean;
+				ceremony?: boolean;
+				dietary?: string;
+				comments?: string;
+				noAlcohol?: boolean;
+				vegetarian?: boolean;
+				pescetarian?: boolean;
+				name: string;
+			}[];
 		};
 	};
 };
 
 export type UpdateRSVPRequestBody = {
 	inviteId: string;
-	invitedToAfternoon?: boolean;
 	adminAuth?: string;
 	allowSaveEmail?: boolean;
-	submitterName: string;
-} & RSVPRawJSONSchema['invites'][number]['data'];
+	submitterName?: string;
+	invitedToAfternoon?: boolean;
+} & RSVPRawJSONSchema[string]['data'];
 
 export type UpdateRSVPRequestResponse =
 	| {
@@ -99,7 +95,7 @@ export type GetRSVPRequestResponse =
 export type CheckRSVPRequestResponse<T extends ResponseType> = object &
 	(T extends 'success'
 		? {
-				responded: boolean;
+				submittedBy?: string;
 				invitedToAfternoon: boolean;
 				peopleOnInvite: string[];
 				inviteId: string;
