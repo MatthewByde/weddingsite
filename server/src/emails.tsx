@@ -1,4 +1,4 @@
-import emailInfo from './assets/confidential.json';
+import emailInfo from './assets/confidential.json' with {type: 'json'};
 import nodemailer from 'nodemailer';
 import React from 'react';
 import {
@@ -35,13 +35,16 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendRSVPEmail(data: UpdateRSVPRequestBody) {
+	if (!data.email) {
+		return;
+	}
 	const email = createRSVPEmail(data);
 	return await sendEmail(
 		email.plain,
 		email.html,
 		`Matthew & Adele's wedding RSVP receipt`,
 		'Matthew and Adele',
-		data.email ?? '',
+		data.email,
 		[
 			{
 				cid: 'image',
@@ -88,7 +91,7 @@ export async function sendContactFormEmail(
 	);
 }
 
-async function sendEmail(
+export async function sendEmail(
 	text: string,
 	html: string,
 	subject: string,
@@ -121,7 +124,7 @@ function createRSVPEmail(data: UpdateRSVPRequestBody) {
 }
 
 function RSVPEmail({ data }: { data: UpdateRSVPRequestBody }) {
-	const { time, ip, people, submitterName, allowSaveEmail, inviteId } = data;
+	const { ip, people, submitterName, allowSaveEmail, inviteId } = data;
 
 	return (
 		<Html>
@@ -154,7 +157,7 @@ function RSVPEmail({ data }: { data: UpdateRSVPRequestBody }) {
 						<Hr />
 						<Section style={lowerSection}>
 							<Text style={cautionText}>
-								{`The above RSVP was submitted at ${time} by ${submitterName} at ${ip}`}
+								{`The above RSVP was submitted at ${new Date().toISOString()} by ${submitterName} at ${ip}`}
 							</Text>
 						</Section>
 					</Section>
@@ -173,9 +176,9 @@ function RSVPEmail({ data }: { data: UpdateRSVPRequestBody }) {
 							href='https://matthewandadelewedding.co.uk/contact'
 							target='_blank'
 							style={link}>
-							contact us
+							contact us.
 						</Link>
-						{`.${
+						{` ${
 							allowSaveEmail
 								? 'If you are subscribed to our emails and you wish to unsubscribe, '
 								: ''
@@ -185,10 +188,10 @@ function RSVPEmail({ data }: { data: UpdateRSVPRequestBody }) {
 								href={`https://matthewandadelewedding.co.uk/api/unsubscribe?id=${inviteId}`}
 								target='_blank'
 								style={link}>
-								click here
+								click here.
 							</Link>
 						)}
-						.
+						
 					</Text>
 				</Container>
 			</Body>
@@ -196,10 +199,62 @@ function RSVPEmail({ data }: { data: UpdateRSVPRequestBody }) {
 	);
 }
 
-function RSVPEmailSection(
-	person: Exclude<UpdateRSVPRequestBody['people'], undefined>[number]
-) {
+function RSVPEmailSection({
+	person,
+}: {
+	person: Exclude<UpdateRSVPRequestBody['people'], undefined>[number];
+}) {
 	const isComing = person.afternoon || person.evening || person.ceremony;
+
+	return (
+		<>
+			<Heading style={h2}>{person.name ?? 'Unknown name'}</Heading>
+			{isComing ? (
+				<>
+					<Text style={h3}>
+						You graciously accepted the invitation to the following:
+					</Text>
+					<Text style={mainText}>
+						{person.ceremony && (
+							<>
+								- Wedding ceremony at Monyhull Church <br></br>
+							</>
+						)}
+						{person.afternoon && (
+							<>
+								- Afternoon reception at Westmead Hotel <br></br>
+							</>
+						)}
+						{person.evening && (
+							<>
+								- Evening reception at Westmead Hotel <br></br>
+							</>
+						)}
+					</Text>
+					<Text style={h3}>Dietary requirements:</Text>
+					<Text style={mainText}>
+						{person.vegetarian ? (
+							<>Vegetarian</>
+						) : person.pescetarian ? (
+							<>Pescetarian</>
+						) : person.dietary ? (
+							<>{person.dietary}</>
+						) : (
+							<>No dietary requirements</>
+						)}
+					</Text>
+					<Text style={h3}>Would like orange juice in place of alcohol?</Text>
+					<Text style={mainText}>{person.noAlcohol ? 'Yes' : 'No'}</Text>
+					<Text style={h3}>Additional comments</Text>
+					<Text style={mainText}>{person.comments}</Text>
+				</>
+			) : (
+				<>
+					<Text style={mainText}>You regretfully declined the invitation.</Text>
+				</>
+			)}
+		</>
+	);
 }
 
 function createContactFormEmail(
@@ -323,6 +378,24 @@ const h1 = {
 	fontSize: '20px',
 	fontWeight: 'bold',
 	marginBottom: '15px',
+};
+
+const h2 = {
+	color: '#333',
+	fontFamily:
+		"-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+	fontSize: '17px',
+	fontWeight: 'bold',
+	marginBottom: '8px',
+};
+
+const h3 = {
+	color: '#333',
+	fontFamily:
+		"-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+	fontSize: '15px',
+	fontWeight: 'bold',
+	marginBottom: '3px',
 };
 
 const link = {

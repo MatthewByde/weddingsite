@@ -3,9 +3,17 @@ import Router from './Router';
 import Theme from './Theme';
 
 export const AdminKeyContext = React.createContext<{
-	key: string | null;
-	setKey: React.Dispatch<React.SetStateAction<string | null>>;
-}>({ key: null, setKey: () => {} });
+	keys: {
+		adminKey: Uint8Array;
+		publicKey: Uint8Array;
+	} | null;
+	setKeys: React.Dispatch<
+		React.SetStateAction<{
+			adminKey: Uint8Array;
+			publicKey: Uint8Array;
+		} | null>
+	>;
+}>({ keys: null, setKeys: () => {} });
 
 export const WindowWidthContext = React.createContext<{
 	width: number;
@@ -32,13 +40,20 @@ export default function App() {
 	}, [handleWindowSizeChange]);
 
 	const [navCollapsed, setNavCollapsed] = React.useState<boolean>(width < 768);
-	const [key, setKey] = React.useState<string | null>(null);
+	const [keys, setKeys] = React.useState<{
+		adminKey: Uint8Array;
+		publicKey: Uint8Array;
+	} | null>(null);
 
 	return (
 		<WindowWidthContext.Provider
 			value={{ width: width, isMobile: width < 768 }}>
 			<NavCollapsedContext.Provider value={{ navCollapsed, setNavCollapsed }}>
-				<AdminKeyContext.Provider value={{ key, setKey }}>
+				<AdminKeyContext.Provider
+					value={{
+						keys,
+						setKeys,
+					}}>
 					<Theme>
 						<Router />
 					</Theme>
