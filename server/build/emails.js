@@ -1,4 +1,4 @@
-import emailInfo from './assets/confidential.json' with { type: 'json' };
+import emailInfo from './assets/confidential.json';
 import nodemailer from 'nodemailer';
 import React from 'react';
 import { Body, Container, Head, Heading, Hr, Html, Img, Link, Preview, Section, Text, render, } from '@react-email/components';
@@ -16,7 +16,7 @@ export async function sendRSVPEmail(data) {
         return;
     }
     const email = createRSVPEmail(data);
-    return await sendEmail(email.plain, email.html, `Matthew & Adele's wedding RSVP receipt`, 'Matthew and Adele', data.email, [
+    return await sendEmail(email.plain, email.html, `Matthew & Adele's wedding RSVP receipt`, 'Matthew and Adele', [data.email], [
         {
             cid: 'image',
             filename: 'image.png',
@@ -28,13 +28,6 @@ export async function sendContactFormEmail(message, subject, fromName, userEmail
     message = message.slice(0, CONTACT_MESSAGE_MAXCHARS);
     subject = subject.slice(0, CONTACT_SUBJECT_MAXCHARS);
     fromName = fromName.slice(0, CONTACT_NAME_MAXCHARS);
-    const [localPart, domainPart] = userEmail.split('@', 1);
-    if (localPart && domainPart) {
-        userEmail = `${localPart.slice(0, EMAILLOCAL_MAXCHARS)}@${domainPart.slice(0, EMAILDOMAIN_MAXCHARS)}`;
-    }
-    else {
-        userEmail = userEmail.slice(0, EMAILLOCAL_MAXCHARS);
-    }
     const email = createContactFormEmail(message, fromName, subject, userEmail);
     return await sendEmail(email.plain, email.html, subject, fromName, emailInfo.contactFormToEmail, [
         {
@@ -45,6 +38,16 @@ export async function sendContactFormEmail(message, subject, fromName, userEmail
     ], userEmail);
 }
 export async function sendEmail(text, html, subject, fromName, to, attachments, replyTo) {
+    to = to.map((email) => {
+        const [localPart, domainPart] = email.split('@', 1);
+        if (localPart && domainPart) {
+            email = `${localPart.slice(0, EMAILLOCAL_MAXCHARS)}@${domainPart.slice(0, EMAILDOMAIN_MAXCHARS)}`;
+        }
+        else {
+            email = email.slice(0, EMAILLOCAL_MAXCHARS);
+        }
+        return email;
+    });
     return await transporter.sendMail({
         disableFileAccess: true,
         disableUrlAccess: true,

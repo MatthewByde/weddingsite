@@ -18,6 +18,9 @@ import {
 	GetRSVPRequestBody,
 	GetRSVPRequestResponse,
 	RSVPRawJSONSchema,
+	RSVP_COMMENTS_MAXCHARS,
+	RSVP_DIETARY_MAXCHARS,
+	RSVP_FULLNAME_MAXCHARS,
 	ResponseType,
 	UpdateRSVPRequestBody,
 	UpdateRSVPRequestResponse,
@@ -128,12 +131,10 @@ type RSVPFormData = Exclude<
 >;
 
 //TODO support for unnamed +1s
-//TODO support for returning all data, formatting as csv and downloading
-//TODO input length validation like for contact form for RSVP form & name form. Name form done locally but not serverside currently.
+//TODO input length validation like for contact form for RSVP form.
 
 //TODO test unsubscribing
 //TODO testing and styling
-//TODO test error boundary
 //TODO test localstorage for storing response progress
 //TODO test email styling
 
@@ -189,6 +190,18 @@ function RSVPForm({
 			JSON.stringify(rsvpFormData)
 		);
 	}, [checkRsvpResponse.submitterName, rsvpFormData]);
+
+	React.useEffect(() => {
+		setRsvpFormData((c) => {
+			const data = [...c];
+			data.forEach((item) => {
+				item.comments = item.comments?.slice(0, RSVP_COMMENTS_MAXCHARS);
+				item.dietary = item.dietary?.slice(0, RSVP_DIETARY_MAXCHARS);
+				item.name = item.name.slice(0, RSVP_FULLNAME_MAXCHARS);
+			});
+			return JSON.stringify(data) === JSON.stringify(c) ? c : data;
+		});
+	}, [rsvpFormData]);
 
 	React.useEffect(() => {
 		let isSubscribed = true;
