@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer';
 import React from 'react';
 import { Body, Container, Head, Heading, Hr, Html, Img, Link, Preview, Section, Text, render, } from '@react-email/components';
 import { imageData } from './emailBannerData.js';
-import { EMAILDOMAIN_MAXCHARS, EMAILLOCAL_MAXCHARS, CONTACT_MESSAGE_MAXCHARS, CONTACT_NAME_MAXCHARS, CONTACT_SUBJECT_MAXCHARS, } from './constants.js';
+import { EMAILDOMAIN_MAXCHARS, EMAILLOCAL_MAXCHARS, CONTACT_MESSAGE_MAXCHARS, CONTACT_NAME_MAXCHARS, CONTACT_SUBJECT_MAXCHARS, } from '../../client/src/constants.js';
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {

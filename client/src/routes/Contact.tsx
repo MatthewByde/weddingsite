@@ -3,9 +3,14 @@ import { Link } from 'react-router-dom';
 import PageWrapper from '../PageWrapper';
 import React from 'react';
 import {
+	CONTACT_MESSAGE_MAXCHARS,
+	CONTACT_NAME_MAXCHARS,
+	CONTACT_SUBJECT_MAXCHARS,
+	EMAILDOMAIN_MAXCHARS,
+	EMAILLOCAL_MAXCHARS,
 	SendEmailRequestBody,
 	SendEmailRequestResponse,
-} from '../../../server/src/constants';
+} from '../constants';
 import { HiEnvelope } from 'react-icons/hi2';
 import Form from '../lib/Form';
 
@@ -26,14 +31,17 @@ export default function Contact() {
 	React.useEffect(() => {
 		setEmailRequestBody((c) => {
 			const body = { ...c };
-			body.message = body.message.slice(0, 10000);
-			body.name = body.name.slice(0, 50);
-			body.subject = body.subject.slice(0, 255);
+			body.message = body.message.slice(0, CONTACT_MESSAGE_MAXCHARS);
+			body.name = body.name.slice(0, CONTACT_NAME_MAXCHARS);
+			body.subject = body.subject.slice(0, CONTACT_SUBJECT_MAXCHARS);
 			const [localPart, domainPart] = body.email.split('@', 1);
 			if (localPart && domainPart) {
-				body.email = `${localPart.slice(0, 64)}@${domainPart.slice(0, 255)}`;
+				body.email = `${localPart.slice(
+					0,
+					EMAILLOCAL_MAXCHARS
+				)}@${domainPart.slice(0, EMAILDOMAIN_MAXCHARS)}`;
 			} else {
-				body.email = body.email.slice(0, 64);
+				body.email = body.email.slice(0, EMAILLOCAL_MAXCHARS);
 			}
 			return JSON.stringify(body) === JSON.stringify(c) ? c : body;
 		});

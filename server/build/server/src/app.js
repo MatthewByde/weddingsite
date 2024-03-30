@@ -1,12 +1,12 @@
 import express from 'express';
 import { sendContactFormEmail, sendEmail, sendRSVPEmail } from './emails.js';
-import { RSVP_COMMENTS_MAXCHARS, RSVP_DIETARY_MAXCHARS, RSVP_FULLNAME_MAXCHARS, } from './constants.js';
+import { RSVP_COMMENTS_MAXCHARS, RSVP_DIETARY_MAXCHARS, RSVP_FULLNAME_MAXCHARS, } from '../../client/src/constants.js';
 import { readFileSync, writeFile } from 'fs';
 import { crypto_box_seal, randombytes_buf } from '@devtomio/sodium';
 import emailInfo from './assets/confidential.json' with { type: 'json' };
 import winston from 'winston';
 const logger = winston.createLogger({
-    format: winston.format.json(),
+    format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
     transports: [
         new winston.transports.File({ filename: 'error.log', level: 'warn' }),
         new winston.transports.File({ filename: 'verbose.log', level: 'verbose' }),
@@ -48,7 +48,6 @@ export default function main() {
     writeJson();
     const port = 8080;
     const app = express();
-    app.use(express.static('../static'));
     app.listen(port, () => {
         logger.info(`matthewandadelewedding.co.uk server listening on port ${port}`);
     });
@@ -61,18 +60,23 @@ export default function main() {
     unsubscribeSetupHandler(app);
     pkSetupHandler(app);
     deleteinviteSetupHandler(app);
+    app.use(express.static('../static'));
 }
 function writeJson() {
     logger.silly('writing json');
     writeFile('./build/assets/rsvp.json', JSON.stringify(rsvpData), { encoding: 'utf-8', flag: 'w', flush: true }, afterWriteJson);
 }
+let lastErrorEmailSentAt = 0;
 function afterWriteJson(err) {
     logger.silly('wrote json');
     setTimeout(writeJson, 5000);
     if (err) {
         logger.error(err);
-        const message = `Notification from server: error when writing json file. ${JSON.stringify(err, Object.getOwnPropertyNames(err))}`;
-        sendEmail(message, message, 'Wedding website error notification!', 'Wedding Webserver', emailInfo.contactFormToEmail);
+        if (new Date().getTime() >= lastErrorEmailSentAt + 60 * 1000 * 10) {
+            const message = `Notification from server: error when writing json file. ${JSON.stringify(err, Object.getOwnPropertyNames(err))}`;
+            sendEmail(message, message, 'Wedding website error notification!', 'Wedding Webserver', emailInfo.contactFormToEmail);
+            lastErrorEmailSentAt = new Date().getTime();
+        }
     }
 }
 function pkSetupHandler(app) {

@@ -1,4 +1,4 @@
-import emailInfo from './assets/confidential.json';
+import emailInfo from './assets/confidential.json' with {type: 'json'};
 import nodemailer from 'nodemailer';
 import React from 'react';
 import {
@@ -24,7 +24,7 @@ import {
 	CONTACT_NAME_MAXCHARS,
 	CONTACT_SUBJECT_MAXCHARS,
 	UpdateRSVPRequestBody,
-} from './constants.js';
+} from '../../client/src/constants.js';
 
 const transporter = nodemailer.createTransport({
 	service: 'gmail',
