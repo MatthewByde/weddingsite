@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { AdminKeyContext } from '../App';
 import React from 'react';
 import { PKRequestResponse } from '../constants';
-import { b642uint8array } from '../lib/Utils';
+import { b642uint8array } from '../Utils';
 
 export default function Login() {
 	const [text, setText] = React.useState<string>('Loading...');
