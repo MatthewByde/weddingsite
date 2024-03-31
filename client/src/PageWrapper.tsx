@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { use100vh } from 'react-div-100vh';
 import Divider from './lib/Divider';
 import dayjs from 'dayjs';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 
 const HEADER_SIZE = '80px';
 
@@ -98,7 +98,8 @@ export default function PageWrapper({
 	);
 }
 
-function FallbackComponent() {
+function FallbackComponent(props: FallbackProps) {
+	console.error(props.error);
 	return (
 		<section className='flex flex-col gap-2 items-start py-8 px-8 w-full max-w-3xl text-textColor'>
 			<h1

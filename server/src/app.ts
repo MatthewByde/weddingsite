@@ -16,6 +16,7 @@ import {
 	ResponseType,
 	SendEmailRequestBody,
 	SendEmailRequestResponse,
+	UNKNOWN_GUEST_NAME,
 	UpdateRSVPRequestBody,
 	UpdateRSVPRequestResponse,
 } from '../../client/src/constants.js';
@@ -26,9 +27,9 @@ import winston from 'winston';
 
 const logger = winston.createLogger({
 	format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.json()
-        ),
+		winston.format.timestamp(),
+		winston.format.json()
+	),
 	transports: [
 		new winston.transports.File({ filename: 'error.log', level: 'warn' }),
 		new winston.transports.File({ filename: 'verbose.log', level: 'verbose' }),
@@ -47,7 +48,7 @@ const rsvpData = JSON.parse(
 ) as RSVPStoredJSONSchema;
 
 logger.info('Read JSON data');
-
+logger.info(JSON.stringify(rsvpData));
 const pk = readFileSync('./build/assets/pk');
 
 logger.info('Read public key');
@@ -264,6 +265,7 @@ function updatersvpSetupHandler(app: express.Express) {
 							body.people?.map((e) => e.name) ??
 							rsvpData[body.inviteId]?.peopleOnInvite ??
 							[],
+						plusOnes: body.plusOnes ?? rsvpData[body.inviteId]?.plusOnes,
 					};
 					if (body.people) {
 						const toEncrypt: RSVPRawJSONSchema[string]['data'] = {
@@ -299,6 +301,69 @@ function updatersvpSetupHandler(app: express.Express) {
 						});
 						return;
 					}
+					const names = body.people?.map((e) => e.name);
+
+					if (
+						!names ||
+						!rsvpData[body.inviteId].peopleOnInvite.every((e) =>
+							names.includes(e)
+						)
+					) {
+						logger.warn(
+							`updatersvp received from normal user ${
+								body.submitterName
+							}, name missing from rsvp ${body.inviteId}. Names on invite: ${
+								rsvpData[body.inviteId].peopleOnInvite
+							}. Names given: ${names}`
+						);
+						res.status(401).json({ 
+							errorMessage: `some data was missing from your rsvp response!`,
+						});
+						return;
+					}
+					rsvpData[body.inviteId].peopleOnInvite.forEach((e) => 
+						names.splice(names.indexOf(e), 1)
+					);
+					if (names.length !== (rsvpData[body.inviteId].plusOnes ?? 0)) {
+						logger.warn(
+							`updatersvp received from normal user ${
+								body.submitterName
+							}, incorrect plusones ${body.inviteId}. Names on invite: ${
+								rsvpData[body.inviteId].peopleOnInvite
+							}. Names given: ${names}. Plusones: ${
+								rsvpData[body.inviteId].plusOnes
+							}`
+						);
+						res.status(401).json({
+							errorMessage: `invalid plusones given in your rsvp response!`,
+						});
+						return;
+					}
+					if (
+						!names
+							?.map((e) => e.toLowerCase())
+							.concat(
+								Object.entries(rsvpData).flatMap((e) =>
+									e[0] === body.inviteId ? [] : e[1].peopleOnInvite.map(e=>e.toLowerCase())
+								)
+							).filter(e=>e!==UNKNOWN_GUEST_NAME.toLowerCase())
+							.every((e, i, arr) => {
+								return arr.indexOf(e) === i;
+							})
+					) {
+						logger.error(
+							`updatersvp received from normal user ${
+								body.submitterName
+							}, duplicate name given. Names given: ${names}. Plusones: ${
+								rsvpData[body.inviteId].plusOnes
+							}`
+						);
+						res.status(401).json({
+							errorMessage: `Sorry, either you provided two people with the same name or someone with a name you provided is already present on another invitation!`,
+						});
+						return;
+					}
+
 					logger.verbose(
 						`updatersvp received from normal user ${body.submitterName}: ${body.inviteId}`
 					);
@@ -316,6 +381,9 @@ function updatersvpSetupHandler(app: express.Express) {
 						Buffer.from(encryptedBinary).toString('base64');
 					rsvpData[body.inviteId].submittedBy = body.submitterName;
 					rsvpData[body.inviteId].data = encryptedString;
+					rsvpData[body.inviteId].peopleOnInvite =
+						body.people?.map((e) => e.name) ?? [];
+					rsvpData[body.inviteId].plusOnes = undefined;
 					sendRSVPEmail(body);
 					res.status(200).json({});
 				}
@@ -380,7 +448,7 @@ function checkrsvpSetupHandler(app: express.Express) {
 		'/api/checkrsvp',
 		(req, res: express.Response<CheckRSVPRequestResponse<ResponseType>>) => {
 			try {
-				const name = req.query.name;
+				const name = req.query.name as string | undefined;
 				const inviteId = Object.entries(rsvpData).find((e) =>
 					e[1].peopleOnInvite
 						.map((e) => e.toLowerCase())
@@ -402,6 +470,7 @@ function checkrsvpSetupHandler(app: express.Express) {
 					submittedBy: rsvpData[inviteId].submittedBy,
 					peopleOnInvite: rsvpData[inviteId].peopleOnInvite,
 					invitedToAfternoon: rsvpData[inviteId].invitedToAfternoon,
+					plusOnes: rsvpData[inviteId].plusOnes,
 					inviteId,
 				});
 			} catch (e) {
