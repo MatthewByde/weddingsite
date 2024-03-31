@@ -13,6 +13,8 @@ export const RSVP_FULLNAME_MAXCHARS = 51; //one for a space
 export const RSVP_DIETARY_MAXCHARS = 1000;
 export const RSVP_COMMENTS_MAXCHARS = 1000;
 
+export const UNKNOWN_GUEST_NAME = 'Additional guest (+1)';
+
 export type PKRequestResponse =
 	| {
 			pk: string;
@@ -44,6 +46,7 @@ export type RSVPStoredJSONSchema = {
 		invitedToAfternoon: boolean;
 		data: string;
 		peopleOnInvite: string[];
+		plusOnes?: number;
 	};
 };
 
@@ -53,6 +56,7 @@ export type RSVPRawJSONSchema = {
 		submittedBy?: string;
 		invitedToAfternoon: boolean;
 		peopleOnInvite: string[];
+		plusOnes?: number;
 		data: {
 			email?: string;
 			time?: string;
@@ -78,6 +82,7 @@ export type UpdateRSVPRequestBody = {
 	allowSaveEmail?: boolean;
 	submitterName?: string;
 	invitedToAfternoon?: boolean;
+	plusOnes?: number;
 } & RSVPRawJSONSchema[string]['data'];
 
 export type UpdateRSVPRequestResponse =
@@ -107,6 +112,7 @@ export type CheckRSVPRequestResponse<T extends ResponseType> = object &
 				invitedToAfternoon: boolean;
 				peopleOnInvite: string[];
 				inviteId: string;
+				plusOnes?: number;
 		  }
 		: { errorMessage: string });
 

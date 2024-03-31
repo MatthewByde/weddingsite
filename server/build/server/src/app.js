@@ -1,6 +1,6 @@
 import express from 'express';
 import { sendContactFormEmail, sendEmail, sendRSVPEmail } from './emails.js';
-import { RSVP_COMMENTS_MAXCHARS, RSVP_DIETARY_MAXCHARS, RSVP_FULLNAME_MAXCHARS, } from '../../client/src/constants.js';
+import { RSVP_COMMENTS_MAXCHARS, RSVP_DIETARY_MAXCHARS, RSVP_FULLNAME_MAXCHARS, UNKNOWN_GUEST_NAME, } from '../../client/src/constants.js';
 import { readFileSync, writeFile } from 'fs';
 import { crypto_box_seal, randombytes_buf } from '@devtomio/sodium';
 import emailInfo from './assets/confidential.json' with { type: 'json' };
@@ -20,6 +20,7 @@ const logger = winston.createLogger({
 logger.info('Starting server');
 const rsvpData = JSON.parse(readFileSync('./build/assets/rsvp.json').toString('utf8'));
 logger.info('Read JSON data');
+logger.info(JSON.stringify(rsvpData));
 const pk = readFileSync('./build/assets/pk');
 logger.info('Read public key');
 const nonces = [];
@@ -182,6 +183,7 @@ function updatersvpSetupHandler(app) {
                     peopleOnInvite: body.people?.map((e) => e.name) ??
                         rsvpData[body.inviteId]?.peopleOnInvite ??
                         [],
+                    plusOnes: body.plusOnes ?? rsvpData[body.inviteId]?.plusOnes,
                 };
                 if (body.people) {
                     const toEncrypt = {
@@ -210,6 +212,35 @@ function updatersvpSetupHandler(app) {
                     });
                     return;
                 }
+                const names = body.people?.map((e) => e.name);
+                if (!names ||
+                    !rsvpData[body.inviteId].peopleOnInvite.every((e) => names.includes(e))) {
+                    logger.warn(`updatersvp received from normal user ${body.submitterName}, name missing from rsvp ${body.inviteId}. Names on invite: ${rsvpData[body.inviteId].peopleOnInvite}. Names given: ${names}`);
+                    res.status(401).json({
+                        errorMessage: `some data was missing from your rsvp response!`,
+                    });
+                    return;
+                }
+                rsvpData[body.inviteId].peopleOnInvite.forEach((e) => names.splice(names.indexOf(e), 1));
+                if (names.length !== (rsvpData[body.inviteId].plusOnes ?? 0)) {
+                    logger.warn(`updatersvp received from normal user ${body.submitterName}, incorrect plusones ${body.inviteId}. Names on invite: ${rsvpData[body.inviteId].peopleOnInvite}. Names given: ${names}. Plusones: ${rsvpData[body.inviteId].plusOnes}`);
+                    res.status(401).json({
+                        errorMessage: `invalid plusones given in your rsvp response!`,
+                    });
+                    return;
+                }
+                if (!names
+                    ?.map((e) => e.toLowerCase())
+                    .concat(Object.entries(rsvpData).flatMap((e) => e[0] === body.inviteId ? [] : e[1].peopleOnInvite.map(e => e.toLowerCase()))).filter(e => e !== UNKNOWN_GUEST_NAME.toLowerCase())
+                    .every((e, i, arr) => {
+                    return arr.indexOf(e) === i;
+                })) {
+                    logger.error(`updatersvp received from normal user ${body.submitterName}, duplicate name given. Names given: ${names}. Plusones: ${rsvpData[body.inviteId].plusOnes}`);
+                    res.status(401).json({
+                        errorMessage: `Sorry, either you provided two people with the same name or someone with a name you provided is already present on another invitation!`,
+                    });
+                    return;
+                }
                 logger.verbose(`updatersvp received from normal user ${body.submitterName}: ${body.inviteId}`);
                 const toEncrypt = {
                     email: body.allowSaveEmail ? body.email : undefined,
@@ -221,6 +252,9 @@ function updatersvpSetupHandler(app) {
                 const encryptedString = Buffer.from(encryptedBinary).toString('base64');
                 rsvpData[body.inviteId].submittedBy = body.submitterName;
                 rsvpData[body.inviteId].data = encryptedString;
+                rsvpData[body.inviteId].peopleOnInvite =
+                    body.people?.map((e) => e.name) ?? [];
+                rsvpData[body.inviteId].plusOnes = undefined;
                 sendRSVPEmail(body);
                 res.status(200).json({});
             }
@@ -296,6 +330,7 @@ function checkrsvpSetupHandler(app) {
                 submittedBy: rsvpData[inviteId].submittedBy,
                 peopleOnInvite: rsvpData[inviteId].peopleOnInvite,
                 invitedToAfternoon: rsvpData[inviteId].invitedToAfternoon,
+                plusOnes: rsvpData[inviteId].plusOnes,
                 inviteId,
             });
         }
