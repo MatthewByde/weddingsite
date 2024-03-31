@@ -12,7 +12,6 @@ import React from 'react';
 import PageWrapper from '../PageWrapper';
 import Form from '../lib/Form';
 import {
-	AuthRequestResponse,
 	CheckRSVPRequestResponse,
 	GetRSVPRequestBody,
 	GetRSVPRequestResponse,
@@ -34,7 +33,7 @@ import {
 } from 'react-icons/hi2';
 import { AdminKeyContext } from '../App';
 import { crypto_box_seal_open } from 'libsodium-wrappers';
-import { ab2b64, b642uint8array } from '../lib/Utils';
+import { b642uint8array, getNonce } from '../Utils';
 
 export default function RSVP() {
 	const { keys } = React.useContext(AdminKeyContext);
@@ -142,30 +141,6 @@ type RSVPFormData = Exclude<
 
 //TODO testing and styling
 //TODO test email styling
-
-async function getNonce(keys: { adminKey: Uint8Array; publicKey: Uint8Array }) {
-	const nonceResp = await fetch('/api/auth', {
-		method: 'GET',
-		headers: {
-			Accept: 'application/json',
-			'Content-Type': 'application/json',
-		},
-	});
-	const nonceBody = (await nonceResp.json()) as AuthRequestResponse;
-	if (!nonceResp.ok || 'errorMessage' in nonceBody) {
-		throw new Error(
-			`Error ${nonceResp.status} - ${nonceResp.statusText}: ${
-				'errorMessage' in nonceBody ? nonceBody.errorMessage : 'unknown cause'
-			}`
-		);
-	}
-	const decrypted = crypto_box_seal_open(
-		b642uint8array(nonceBody.nonce),
-		keys.publicKey,
-		keys.adminKey
-	);
-	return ab2b64(decrypted.buffer);
-}
 
 type StoredFormData = {
 	email: string;
