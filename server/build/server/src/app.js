@@ -5,6 +5,7 @@ import { readFileSync, writeFile } from 'fs';
 import { crypto_box_seal, randombytes_buf } from '@devtomio/sodium';
 import emailInfo from './assets/confidential.json' with { type: 'json' };
 import winston from 'winston';
+const RSVP_FILE_PATH = './build/server/src/assets/rsvp.json';
 const logger = winston.createLogger({
     format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
     transports: [
@@ -18,7 +19,7 @@ const logger = winston.createLogger({
     ],
 });
 logger.info('Starting server');
-const rsvpData = JSON.parse(readFileSync('./build/server/src/assets/rsvp.json').toString('utf8'));
+const rsvpData = JSON.parse(readFileSync(RSVP_FILE_PATH).toString('utf8'));
 logger.info('Read JSON data');
 logger.info(JSON.stringify(rsvpData));
 const pk = readFileSync('./build/server/src/assets/pk');
@@ -65,7 +66,7 @@ export default function main() {
 }
 function writeJson() {
     logger.silly('writing json');
-    writeFile('./build/assets/rsvp.json', JSON.stringify(rsvpData), { encoding: 'utf-8', flag: 'w', flush: true }, afterWriteJson);
+    writeFile(RSVP_FILE_PATH, JSON.stringify(rsvpData), { encoding: 'utf-8', flag: 'w', flush: true }, afterWriteJson);
 }
 let lastErrorEmailSentAt = 0;
 function afterWriteJson(err) {
