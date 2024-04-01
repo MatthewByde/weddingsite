@@ -1,9 +1,9 @@
 import { Button, Sidebar } from 'flowbite-react';
 import React from 'react';
 import * as Icons from 'react-icons/hi2';
-import { NavCollapsedContext } from './App';
+import { NavCollapsedContext, WindowWidthContext } from './App';
 import bg from './assets/bg.jpg'; //TODO https://www.freepik.com/free-photo/concrete-wall-with-flowers_3164817.htm#query=wedding%20background&position=0&from_view=keyword&track=ais&uuid=aca60d95-755a-4828-88fa-7ebe1118f085 ATTRIBUTE
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { use100vh } from 'react-div-100vh';
 import Divider from './lib/Divider';
 import dayjs from 'dayjs';
@@ -33,11 +33,17 @@ export default function PageWrapper({
 			).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 		);
 	}, 1000);
-
+	const { isMobile } = React.useContext(WindowWidthContext);
 	const ref = React.useRef<HTMLDivElement>(null);
 	const fullvh = use100vh();
 	const { navCollapsed, setNavCollapsed } =
 		React.useContext(NavCollapsedContext);
+	const location = useLocation();
+	React.useEffect(() => {
+		if (isMobile) {
+			setNavCollapsed(true);
+		}
+	}, [isMobile, setNavCollapsed, location.pathname]);
 	return (
 		<div
 			className='h-full flex flex-col'

@@ -44,7 +44,7 @@ export const customTheme: CustomFlowbiteTheme = {
 	},
 	accordion: {
 		root: {
-			base: 'divide-y divide-gray-200 border-gray-200  bg-backgroundColor bg-opacity-60',
+			base: 'divide-y divide-gray-200 border-gray-200 bg-[rgb(240,240,240)] bg-opacity-60',
 			flush: {
 				off: 'rounded-lg border',
 				on: 'border-b',
@@ -61,7 +61,7 @@ export const customTheme: CustomFlowbiteTheme = {
 					on: 'rotate-180',
 				},
 			},
-			base: 'flex w-full items-center justify-between p-5 text-left font-medium text-gray-500 first:rounded-t-lg last:rounded-b-lg',
+			base: 'flex w-full items-center justify-between p-5 text-left font-medium text-gray-500 first:rounded-t-lg last:rounded-b-lg !border-8',
 			flush: {
 				off: 'hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:hover:bg-gray-800',
 				on: 'bg-transparent',
