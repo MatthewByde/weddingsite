@@ -53,7 +53,7 @@ export default function PageWrapper({
 					<span className='text-sm'>and</span>
 					<span className='text-lg'>Matthew</span>
 				</Link>
-				<span className='rounded-lg bg-white border-solid border-2 border-darkAccentColor h-fit self-center justify-self-end p-2 text-textColor mr-2'>
+				<span className='h-fit self-center justify-self-end p-2 text-lightAccentColor mr-2 font-medium text-lg min-w-[10.5rem]'>
 					{timer}
 				</span>
 			</header>
