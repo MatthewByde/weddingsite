@@ -32,6 +32,7 @@ import {
 	HiEnvelope,
 	HiMiniArrowLeftOnRectangle,
 } from 'react-icons/hi2';
+import { IoRefreshSharp } from 'react-icons/io5';
 import { AdminKeyContext } from '../App';
 import { crypto_box_seal_open } from 'libsodium-wrappers';
 import { b642uint8array, getNonce } from '../Utils';
@@ -42,12 +43,13 @@ export default function RSVP() {
 		React.useState<
 			(CheckRSVPRequestResponse<'success'> & { submitterName: string }) | null
 		>(null);
+	const [resetFormKey, setResetFormKey] = React.useState(0);
 	return (
 		<PageWrapper>
 			<section className='flex flex-col gap-2 items-start py-8 px-8 w-full max-w-3xl text-textColor'>
 				<div className='flex justify-between w-full'>
 					<h1
-						className='text-darkAccentColor'
+						className='text-darkAccentColor text-nowrap'
 						style={{
 							fontFamily: 'argue',
 							fontSize: 'min(max(3.75vw, 2rem), 3.75rem)',
@@ -55,14 +57,27 @@ export default function RSVP() {
 						RSVP
 					</h1>
 					{checkRsvpRequestResponse && (
-						<Button
-							className='min-w-24 max-h-[50px] w-fit bg-secondaryColor hover:bg-darkAccentColor mb-4 '
-							onClick={() => {
-								setCheckRsvpRequestResponse(null);
-							}}>
-							<HiMiniArrowLeftOnRectangle className='w-6 h-6' />
-							Log out
-						</Button>
+						<div className='flex gap-2'>
+							<Button
+								className='min-w-24 max-h-[50px] w-fit bg-secondaryColor hover:bg-darkAccentColor mb-4 '
+								onClick={() => {
+									localStorage.removeItem(
+										checkRsvpRequestResponse.submitterName.toLowerCase()
+									);
+									setResetFormKey((c) => c + 1);
+								}}>
+								<IoRefreshSharp className='w-6 h-6' />
+								Reset form
+							</Button>
+							<Button
+								className='min-w-24 max-h-[50px] w-fit bg-secondaryColor hover:bg-darkAccentColor mb-4 '
+								onClick={() => {
+									setCheckRsvpRequestResponse(null);
+								}}>
+								<HiMiniArrowLeftOnRectangle className='w-6 h-6' />
+								Log out
+							</Button>
+						</div>
 					)}
 				</div>
 
@@ -75,6 +90,7 @@ export default function RSVP() {
 										{`An RSVP response for this invitation has been submitted by ${checkRsvpRequestResponse.submittedBy}.`}
 									</p>
 									<RSVPForm
+										key={resetFormKey}
 										checkRsvpResponse={checkRsvpRequestResponse}
 										keys={keys}></RSVPForm>
 								</>
@@ -98,6 +114,7 @@ export default function RSVP() {
 									</p>
 								) : (
 									<RSVPForm
+										key={resetFormKey}
 										checkRsvpResponse={checkRsvpRequestResponse}></RSVPForm>
 								)}
 							</>
@@ -198,7 +215,7 @@ function RSVPForm({
 	const [statuses, setStatuses] = React.useState<
 		('accepts' | 'declines' | 'none')[]
 	>(keys ? [] : stored ? stored.statuses : rsvpFormData.map((_) => 'none'));
-	const formRef = React.createRef<HTMLFormElement>();
+	const formRef = React.useRef<HTMLFormElement>(null);
 	React.useEffect(() => {
 		setRsvpFormData((c) => {
 			const data = [...c];
