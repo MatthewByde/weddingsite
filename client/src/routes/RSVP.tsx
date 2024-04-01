@@ -873,9 +873,9 @@ function RSVPFormSection({
 											<div className='text-gray-500'>
 												<span
 													onClick={() => setShowFoodInfoModal(true)}
-													className='text-xs font-normal'>
+													className='text-sm font-normal hover:underline'>
 													Please click here to view information about the food
-													and dtink that will be served.
+													and drink that will be served.
 												</span>
 											</div>
 											<FoodInformationModal
@@ -943,24 +943,33 @@ function FoodInformationModal({
 						<>
 							<h1 className='text-2xl'>Afternoon reception</h1>
 							<p>
-								At the afternoon reception, those with no dietary requirements
-								will receive the same 3-course meal. All vegetarians will be
-								served the same vegetarian 3-course meal. Pescetarians may
-								receive a mixture of both menus. Any other dietary requirements
-								will be catered for separately.
+								Those with no dietary requirements will receive the same
+								3-course meal. All vegetarians will be served the same
+								vegetarian 3-course meal. Pescetarians may receive a mixture of
+								both menus. Any other dietary requirements will be catered for
+								separately.
+							</p>
+							<p>
+								A glass of wine will be served with the meal, and an alcoholic
+								beverage will be provided on arrival and for the toast. A bar
+								will be available throughout.
 							</p>
 						</>
 					)}
 					<h1 className='text-2xl'>Evening reception</h1>
 					<p>
-						At the evening reception, a buffet will be provided, which will
-						include some vegetarian food. Other dietary requirements can be
-						catered for separately.
+						A buffet will be provided, which will include some vegetarian food.
+						Other dietary requirements can be catered for separately.
 					</p>
+					<p> In addition, a bar will be available throughout. </p>
 				</div>
 			</Modal.Body>
 			<Modal.Footer>
-				<Button onClick={() => setShowFoodInfoModal(false)}>Close</Button>
+				<Button
+					className='min-w-24 max-h-[50px] w-fit bg-secondaryColor hover:bg-darkAccentColor mb-4 '
+					onClick={() => setShowFoodInfoModal(false)}>
+					Close
+				</Button>
 			</Modal.Footer>
 		</Modal>
 	);
