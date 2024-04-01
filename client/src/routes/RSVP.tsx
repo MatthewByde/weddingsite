@@ -139,10 +139,9 @@ type RSVPFormData = Exclude<
 //TODO improve look of timer
 //TODO add content to other pages
 //TODO clear form (and localstorage) button
-//TODO custom form validation - get rid of 'Please tick this box to continue', replace with 'You must tick one of these boxes to continue'
-//TODO custom form validation - trigger it manually so that we can also display a toast when validation fails, in case the invalid field is not visible at the time due to accordion
 
 //TODO testing and styling
+//TODO test validation around duplicate names and +1s and all possible server errors
 //TODO test email styling
 
 type StoredFormData = {
@@ -199,7 +198,7 @@ function RSVPForm({
 	const [statuses, setStatuses] = React.useState<
 		('accepts' | 'declines' | 'none')[]
 	>(keys ? [] : stored ? stored.statuses : rsvpFormData.map((_) => 'none'));
-
+	const formRef = React.createRef<HTMLFormElement>();
 	React.useEffect(() => {
 		setRsvpFormData((c) => {
 			const data = [...c];
@@ -298,18 +297,25 @@ function RSVPForm({
 	}, [checkRsvpResponse.inviteId, checkRsvpResponse.submitterName, keys]);
 
 	const onSubmit = React.useCallback(async () => {
-		let body: UpdateRSVPRequestBody;
+		if (!formRef.current?.reportValidity()) {
+			setToastText(
+				'The form is incomplete - have you filled it in for every person?'
+			);
+			setToastType('error');
+			return;
+		}
 		if (
 			rsvpFormData.find(
 				(e, i) => e.name === UNKNOWN_GUEST_NAME && statuses[i] !== 'declines'
 			)
 		) {
 			setToastText(
-				'Form is incomplete - information is missing for some additional guests (+1s)'
+				'The form is incomplete - information is missing for some additional guests (+1s)'
 			);
 			setToastType('error');
 			return;
 		}
+		let body: UpdateRSVPRequestBody;
 		if (keys) {
 			if (rsvpFormData.length === 0) {
 				setToastText(
@@ -378,6 +384,7 @@ function RSVPForm({
 		checkRsvpResponse.inviteId,
 		checkRsvpResponse.submitterName,
 		email,
+		formRef,
 		keys,
 		rsvpFormData,
 		statuses,
@@ -391,6 +398,8 @@ function RSVPForm({
 				</h1>
 			) : (
 				<Form
+					formNoValidate //we call reportValidate on submit instead
+					ref={formRef}
 					onSubmit={onSubmit}
 					onDismissToast={() => {
 						setToastType('none');
@@ -543,9 +552,16 @@ function RSVPFormSection({
 					<div className='flex items-center gap-2'>
 						{/*We use circular checkboxes instead of radio buttons because the radio buttons were buggy and were not always displaying their state correctly*/}
 						<Checkbox
+							onInvalid={(e) => {
+								e.currentTarget.setCustomValidity(
+									'You must select one of these options!'
+								);
+							}}
+							onInput={(e) => e.currentTarget.setCustomValidity('')}
+							required={status === 'none'}
 							style={{ clipPath: 'circle(46% at 50% 50%)' }}
-							name='accept'
-							id='accept'
+							name={`accept${index}`}
+							id={`accept${index}`}
 							checked={status === 'accepts'}
 							onChange={(e) => {
 								setStatuses((c) => {
@@ -557,13 +573,14 @@ function RSVPFormSection({
 								});
 							}}
 						/>
-						<Label htmlFor='accept'>Excitedly accepts!</Label>
+						<Label htmlFor={`accept${index}`}>Excitedly accepts!</Label>
 					</div>
 					<div className='flex items-center gap-2'>
 						<Checkbox
+							required={status === 'none'}
 							style={{ clipPath: 'circle(46% at 50% 50%)' }}
-							name='decline'
-							id='decline'
+							name={`decline${index}`}
+							id={`decline${index}`}
 							checked={status === 'declines'}
 							onChange={(e) => {
 								setStatuses((c) => {
@@ -575,7 +592,7 @@ function RSVPFormSection({
 								});
 							}}
 						/>
-						<Label htmlFor='decline'>{`Regretfully declines`}</Label>
+						<Label htmlFor={`decline${index}`}>{`Regretfully declines`}</Label>
 					</div>
 				</fieldset>
 				{status === 'accepts' ? (
@@ -586,11 +603,12 @@ function RSVPFormSection({
 									<div>
 										<div>
 											<Label
-												htmlFor='name'
+												htmlFor={`name${index}`}
 												value='First name'
 											/>
 											<TextInput
-												id='name'
+												id={`name${index}`}
+												name={`name${index}`}
 												required
 												onChange={(e) => setPlusOneFirstName(e.target.value)}
 												value={plusOneFirstName}
@@ -598,13 +616,14 @@ function RSVPFormSection({
 										</div>
 										<div>
 											<Label
-												htmlFor='surname'
+												htmlFor={`surname${index}`}
 												value='Surname'
 											/>
 											<TextInput
 												onChange={(e) => setPlusOneSurname(e.target.value)}
 												required
-												id='surname'
+												id={`surname${index}`}
+												name={`surname${index}`}
 												value={plusOneSurname}
 											/>
 										</div>
@@ -634,8 +653,14 @@ function RSVPFormSection({
 									</legend>
 									<div className='flex items-center gap-2'>
 										<Checkbox
-											name='ceremony'
-											id='ceremony'
+											name={`ceremony${index}`}
+											id={`ceremony${index}`}
+											onInvalid={(e) => {
+												e.currentTarget.setCustomValidity(
+													'You must select at least one of these boxes if you are accepting the invitation!'
+												);
+											}}
+											onInput={(e) => e.currentTarget.setCustomValidity('')}
 											required={
 												!formData.afternoon &&
 												!formData.ceremony &&
@@ -653,13 +678,13 @@ function RSVPFormSection({
 												});
 											}}
 										/>
-										<Label htmlFor='ceremony'>Wedding ceremony</Label>
+										<Label htmlFor={`ceremony${index}`}>Wedding ceremony</Label>
 									</div>
 									{invitedToAfternoon && (
 										<div className='flex items-center gap-2'>
 											<Checkbox
-												name='afternoon'
-												id='afternoon'
+												name={`afternoon${index}`}
+												id={`afternoon${index}`}
 												required={
 													!formData.afternoon &&
 													!formData.ceremony &&
@@ -677,13 +702,15 @@ function RSVPFormSection({
 													});
 												}}
 											/>
-											<Label htmlFor='afternoon'>Afternoon reception</Label>
+											<Label htmlFor={`afternoon${index}`}>
+												Afternoon reception
+											</Label>
 										</div>
 									)}
 									<div className='flex items-center gap-2'>
 										<Checkbox
-											name='evening'
-											id='evening'
+											name={`evening${index}`}
+											id={`evening${index}`}
 											required={
 												!formData.afternoon &&
 												!formData.ceremony &&
@@ -701,7 +728,7 @@ function RSVPFormSection({
 												});
 											}}
 										/>
-										<Label htmlFor='evening'>Evening reception</Label>
+										<Label htmlFor={`evening${index}`}>Evening reception</Label>
 									</div>
 								</fieldset>
 								{formData.evening || formData.afternoon ? (
@@ -709,13 +736,13 @@ function RSVPFormSection({
 										<div className='max-w-md'>
 											<div className='mb-2 block'>
 												<Label
-													htmlFor='dietary'
+													htmlFor={`dietary${index}`}
 													value='Dietary requirements'
 												/>
 											</div>
 											<Select
-												name='dietary'
-												id='dietary'
+												name={`dietary${index}`}
+												id={`dietary${index}`}
 												required
 												onChange={(e) => {
 													setDietary(
@@ -746,13 +773,13 @@ function RSVPFormSection({
 										{dietary === 'other' && (
 											<div className='max-w-md'>
 												<Label
-													htmlFor='dietarydetail'
+													htmlFor={`dietarydetail${index}`}
 													value='Please provide details'
 												/>
 
 												<Textarea
-													name='dietarydetail'
-													id='dietarydetail'
+													name={`dietarydetail${index}`}
+													id={`dietarydetail${index}`}
 													required
 													value={formData.dietary}
 													placeholder='Detail your dietary requirements here'
@@ -772,8 +799,8 @@ function RSVPFormSection({
 										{formData.afternoon && (
 											<div className='flex items-center gap-2'>
 												<Checkbox
-													name='alcohol'
-													id='alcohol'
+													name={`alcohol${index}`}
+													id={`alcohol${index}`}
 													checked={formData.noAlcohol}
 													onChange={(e) => {
 														setFormData((c) => {
@@ -786,7 +813,7 @@ function RSVPFormSection({
 														});
 													}}
 												/>
-												<Label htmlFor='alcohol'>
+												<Label htmlFor={`alcohol${index}`}>
 													Orange juice in place of alcohol?
 												</Label>
 											</div>
@@ -811,13 +838,13 @@ function RSVPFormSection({
 								)}
 								<div className='max-w-md'>
 									<Label
-										htmlFor='comments'
+										htmlFor={`comments${index}`}
 										value={`Is there anything else you'd like us to know?`}
 									/>
 
 									<Textarea
-										name='comments'
-										id='comments'
+										name={`comments${index}`}
+										id={`comments${index}`}
 										value={formData.comments}
 										rows={6}
 										onChange={(e) => {
