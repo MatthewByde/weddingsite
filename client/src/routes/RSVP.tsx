@@ -7,6 +7,7 @@ import {
 	Select,
 	TextInput,
 	Textarea,
+	Tooltip,
 } from 'flowbite-react';
 import React from 'react';
 import PageWrapper from '../PageWrapper';
@@ -32,12 +33,13 @@ import {
 	HiEnvelope,
 	HiMiniArrowLeftOnRectangle,
 } from 'react-icons/hi2';
-import { IoRefreshSharp } from 'react-icons/io5';
+import { IoInformationCircleSharp, IoRefreshSharp } from 'react-icons/io5';
 import { AdminKeyContext } from '../App';
 import { crypto_box_seal_open } from 'libsodium-wrappers';
 import { b642uint8array, getNonce } from '../Utils';
 
 export default function RSVP() {
+	const [submitted, setSubmitted] = React.useState(false);
 	const { keys } = React.useContext(AdminKeyContext);
 	const [checkRsvpRequestResponse, setCheckRsvpRequestResponse] =
 		React.useState<
@@ -58,17 +60,19 @@ export default function RSVP() {
 					</h1>
 					{checkRsvpRequestResponse && (
 						<div className='flex gap-2'>
-							<Button
-								className='min-w-24 max-h-[50px] w-fit bg-secondaryColor hover:bg-darkAccentColor mb-4 '
-								onClick={() => {
-									localStorage.removeItem(
-										checkRsvpRequestResponse.submitterName.toLowerCase()
-									);
-									setResetFormKey((c) => c + 1);
-								}}>
-								<IoRefreshSharp className='w-6 h-6' />
-								Reset form
-							</Button>
+							{!checkRsvpRequestResponse.submittedBy && !submitted && (
+								<Button
+									className='min-w-24 max-h-[50px] w-fit bg-secondaryColor hover:bg-darkAccentColor mb-4 '
+									onClick={() => {
+										localStorage.removeItem(
+											checkRsvpRequestResponse.submitterName.toLowerCase()
+										);
+										setResetFormKey((c) => c + 1);
+									}}>
+									<IoRefreshSharp className='w-6 h-6' />
+									Reset form
+								</Button>
+							)}
 							<Button
 								className='min-w-24 max-h-[50px] w-fit bg-secondaryColor hover:bg-darkAccentColor mb-4 '
 								onClick={() => {
@@ -92,7 +96,9 @@ export default function RSVP() {
 									<RSVPForm
 										key={resetFormKey}
 										checkRsvpResponse={checkRsvpRequestResponse}
-										keys={keys}></RSVPForm>
+										keys={keys}
+										submitted={submitted}
+										setSubmitted={setSubmitted}></RSVPForm>
 								</>
 							) : (
 								<p className='pt-4'>
@@ -115,7 +121,9 @@ export default function RSVP() {
 								) : (
 									<RSVPForm
 										key={resetFormKey}
-										checkRsvpResponse={checkRsvpRequestResponse}></RSVPForm>
+										checkRsvpResponse={checkRsvpRequestResponse}
+										submitted={submitted}
+										setSubmitted={setSubmitted}></RSVPForm>
 								)}
 							</>
 						)}
@@ -155,7 +163,6 @@ type RSVPFormData = Exclude<
 //TODO test emailing when deployed to live site
 //TODO improve look of timer
 //TODO add content to other pages
-//TODO clear form (and localstorage) button
 
 //TODO testing and styling
 //TODO test validation around duplicate names and +1s and all possible server errors
@@ -172,12 +179,16 @@ type StoredFormData = {
 function RSVPForm({
 	checkRsvpResponse,
 	keys,
+	setSubmitted,
+	submitted,
 }: {
 	checkRsvpResponse: Exclude<
 		CheckRSVPRequestResponse<'success'> & { submitterName: string },
 		undefined
 	>;
 	keys?: { adminKey: Uint8Array; publicKey: Uint8Array } | null;
+	setSubmitted: React.Dispatch<React.SetStateAction<boolean>>;
+	submitted: boolean;
 }) {
 	const fromStorage = localStorage.getItem(
 		checkRsvpResponse.submitterName.toLowerCase()
@@ -186,7 +197,6 @@ function RSVPForm({
 		? (JSON.parse(fromStorage) as StoredFormData)
 		: null;
 
-	const [submitted, setSubmitted] = React.useState(false);
 	const [toastType, setToastType] = React.useState<
 		'success' | 'error' | 'none'
 	>('none');
@@ -401,9 +411,9 @@ function RSVPForm({
 		checkRsvpResponse.inviteId,
 		checkRsvpResponse.submitterName,
 		email,
-		formRef,
 		keys,
 		rsvpFormData,
+		setSubmitted,
 		statuses,
 	]);
 	return (
@@ -444,10 +454,17 @@ function RSVPForm({
 						})}
 					</Accordion>
 					<div>
-						<Label
-							htmlFor='email'
-							value='Email (optional - we will send a receipt with the details of your RSVP response to this email)'
-						/>
+						<div className='flex gap-2 items-center'>
+							<Label
+								htmlFor='email'
+								value='Email'
+							/>
+							<Tooltip
+								className='*:max-w-72'
+								content='Optionally, provide your email address to receive a submission receipt with the details of your RSVP response.'>
+								<IoInformationCircleSharp className='w-6 h-6' />
+							</Tooltip>
+						</div>
 						<TextInput
 							onChange={(e) => setEmail(e.target.value)}
 							type='email'
@@ -457,7 +474,7 @@ function RSVPForm({
 							value={email}
 						/>
 					</div>
-					<div className='flex items-center gap-2'>
+					<div className='flex gap-2 items-center'>
 						<Checkbox
 							id='storeemail'
 							checked={allowSaveEmail}
@@ -465,12 +482,15 @@ function RSVPForm({
 								setAllowSaveEmail(e.target.checked);
 							}}
 						/>
-						<Label htmlFor='storeemail'>
-							Check this box to allow us to store your email for the sole
+						<Label htmlFor='storeemail'>Send me email updates</Label>
+						<Tooltip
+							className='*:max-w-72'
+							content='Check this box to allow us to store your email for the sole
 							purpose of more easily comnmunicating any important updates with
 							you, in relation to the wedding. Your email would not be shared
-							with any 3rd parties, and would be used as sparingly as possible.
-						</Label>
+							with any 3rd parties, and would be used sparingly.'>
+							<IoInformationCircleSharp className='w-6 h-6' />
+						</Tooltip>
 					</div>
 				</Form>
 			)}
@@ -512,6 +532,21 @@ function RSVPFormSection({
 			: 'none'
 	);
 	const [showFoodInfoModal, setShowFoodInfoModal] = React.useState(false);
+	const [statusRequired, setStatusRequired] = React.useState(status === 'none');
+	const [checkboxesRequired, setCheckboxesRequired] = React.useState(
+		!formData.afternoon && !formData.ceremony && !formData.evening
+	);
+
+	React.useEffect(() => {
+		setStatusRequired(status === 'none');
+	}, [status]);
+
+	React.useEffect(() => {
+		setCheckboxesRequired(
+			!formData.afternoon && !formData.ceremony && !formData.evening
+		);
+	}, [formData.afternoon, formData.ceremony, formData.evening]);
+
 	React.useEffect(() => {
 		if (status === 'none') {
 			setFormData((c) => {
@@ -555,7 +590,6 @@ function RSVPFormSection({
 			return c;
 		});
 	}, [plusOneSurname]);
-
 	return (
 		<Accordion.Panel
 			isOpen={expandedIndex === index}
@@ -565,322 +599,324 @@ function RSVPFormSection({
 					setExpandedIndex((c) => (c === index ? -1 : index));
 				}}>{`${index + 1}. ${formData.name}`}</Accordion.Title>
 			<Accordion.Content>
-				<fieldset className='flex max-w-md gap-4'>
-					<div className='flex items-center gap-2'>
-						{/*We use circular checkboxes instead of radio buttons because the radio buttons were buggy and were not always displaying their state correctly*/}
-						<Checkbox
-							onInvalid={(e) => {
-								e.currentTarget.setCustomValidity(
-									'You must select one of these options!'
-								);
-							}}
-							onInput={(e) => e.currentTarget.setCustomValidity('')}
-							required={status === 'none'}
-							style={{ clipPath: 'circle(46% at 50% 50%)' }}
-							name={`accept${index}`}
-							id={`accept${index}`}
-							checked={status === 'accepts'}
-							onChange={(e) => {
-								setStatuses((c) => {
-									const newStatuses = c.slice();
-									newStatuses[index] = e.target.checked
-										? 'accepts'
-										: 'declines';
-									return newStatuses;
-								});
-							}}
-						/>
-						<Label htmlFor={`accept${index}`}>Excitedly accepts!</Label>
-					</div>
-					<div className='flex items-center gap-2'>
-						<Checkbox
-							required={status === 'none'}
-							style={{ clipPath: 'circle(46% at 50% 50%)' }}
-							name={`decline${index}`}
-							id={`decline${index}`}
-							checked={status === 'declines'}
-							onChange={(e) => {
-								setStatuses((c) => {
-									const newStatuses = c.slice();
-									newStatuses[index] = e.target.checked
-										? 'declines'
-										: 'accepts';
-									return newStatuses;
-								});
-							}}
-						/>
-						<Label htmlFor={`decline${index}`}>{`Regretfully declines`}</Label>
-					</div>
-				</fieldset>
-				{status === 'accepts' ? (
-					<>
-						{formData.name === UNKNOWN_GUEST_NAME ? (
-							<>
-								{formData.name === UNKNOWN_GUEST_NAME && (
-									<div>
-										<div>
-											<Label
-												htmlFor={`name${index}`}
-												value='First name'
-											/>
-											<TextInput
-												id={`name${index}`}
-												name={`name${index}`}
-												required
-												onChange={(e) => setPlusOneFirstName(e.target.value)}
-												value={plusOneFirstName}
-											/>
+				<div className='flex flex-col gap-2'>
+					<fieldset className='flex max-w-md gap-4'>
+						<div className='flex items-center gap-2'>
+							{/*We use circular checkboxes instead of radio buttons because the radio buttons were buggy and were not always displaying their state correctly*/}
+							<Checkbox
+								onInvalid={(e) => {
+									e.currentTarget.setCustomValidity(
+										'You must select one of these options!'
+									);
+								}}
+								onInput={(e) => e.currentTarget.setCustomValidity('')}
+								required={statusRequired}
+								key={String(statusRequired)}
+								style={{ clipPath: 'circle(46% at 50% 50%)' }}
+								name={`accept${index}`}
+								id={`accept${index}`}
+								checked={status === 'accepts'}
+								onChange={(e) => {
+									setStatuses((c) => {
+										const newStatuses = c.slice();
+										newStatuses[index] = e.target.checked
+											? 'accepts'
+											: 'declines';
+										return newStatuses;
+									});
+								}}
+							/>
+							<Label htmlFor={`accept${index}`}>Excitedly accepts!</Label>
+						</div>
+						<div className='flex items-center gap-2'>
+							<Checkbox
+								required={statusRequired}
+								key={String(statusRequired)}
+								style={{ clipPath: 'circle(46% at 50% 50%)' }}
+								name={`decline${index}`}
+								id={`decline${index}`}
+								checked={status === 'declines'}
+								onChange={(e) => {
+									setStatuses((c) => {
+										const newStatuses = c.slice();
+										newStatuses[index] = e.target.checked
+											? 'declines'
+											: 'accepts';
+										return newStatuses;
+									});
+								}}
+							/>
+							<Label
+								htmlFor={`decline${index}`}>{`Regretfully declines`}</Label>
+						</div>
+					</fieldset>
+					{status === 'accepts' ? (
+						<>
+							{formData.name === UNKNOWN_GUEST_NAME ? (
+								<>
+									{formData.name === UNKNOWN_GUEST_NAME && (
+										<div className='flex flex-col gap-2'>
+											<div>
+												<Label
+													htmlFor={`name${index}`}
+													value='First name'
+												/>
+												<TextInput
+													id={`name${index}`}
+													name={`name${index}`}
+													required
+													onChange={(e) => setPlusOneFirstName(e.target.value)}
+													value={plusOneFirstName}
+												/>
+											</div>
+											<div>
+												<Label
+													htmlFor={`surname${index}`}
+													value='Surname'
+												/>
+												<TextInput
+													onChange={(e) => setPlusOneSurname(e.target.value)}
+													required
+													id={`surname${index}`}
+													name={`surname${index}`}
+													value={plusOneSurname}
+												/>
+											</div>
+											<Button
+												onClick={() => {
+													setFormData((c) => {
+														const newData = c.slice();
+														newData[index] = {
+															...newData[index],
+															name: plusOneFirstName + ' ' + plusOneSurname,
+														};
+														return newData;
+													});
+												}}
+												className='min-w-24 w-fit bg-secondaryColor hover:bg-darkAccentColor'>
+												Submit name
+											</Button>
 										</div>
-										<div>
-											<Label
-												htmlFor={`surname${index}`}
-												value='Surname'
-											/>
-											<TextInput
-												onChange={(e) => setPlusOneSurname(e.target.value)}
-												required
-												id={`surname${index}`}
-												name={`surname${index}`}
-												value={plusOneSurname}
-											/>
-										</div>
-										<Button
-											onClick={() => {
-												setFormData((c) => {
-													const newData = c.slice();
-													newData[index] = {
-														...newData[index],
-														name: plusOneFirstName + ' ' + plusOneSurname,
-													};
-													return newData;
-												});
-											}}
-											className='min-w-24 w-fit bg-secondaryColor hover:bg-darkAccentColor'>
-											Submit name
-										</Button>
-									</div>
-								)}
-							</>
-						) : (
-							<>
-								<fieldset className='flex max-w-md flex-col gap-4'>
-									<legend className='mb-4'>
-										Please select all parts of the day this person is planning
-										to attend.
-									</legend>
-									<div className='flex items-center gap-2'>
-										<Checkbox
-											name={`ceremony${index}`}
-											id={`ceremony${index}`}
-											onInvalid={(e) => {
-												e.currentTarget.setCustomValidity(
-													'You must select at least one of these boxes if you are accepting the invitation!'
-												);
-											}}
-											onInput={(e) => e.currentTarget.setCustomValidity('')}
-											required={
-												!formData.afternoon &&
-												!formData.ceremony &&
-												!formData.evening
-											}
-											checked={formData.ceremony}
-											onChange={(e) => {
-												setFormData((c) => {
-													const newData = c.slice();
-													newData[index] = {
-														...newData[index],
-														ceremony: e.target.checked,
-													};
-													return newData;
-												});
-											}}
-										/>
-										<Label htmlFor={`ceremony${index}`}>Wedding ceremony</Label>
-									</div>
-									{invitedToAfternoon && (
+									)}
+								</>
+							) : (
+								<>
+									<fieldset className='flex max-w-md flex-col gap-4'>
+										<legend className='mb-4'>
+											Please select all parts of the day this person is planning
+											to attend.
+										</legend>
 										<div className='flex items-center gap-2'>
 											<Checkbox
-												name={`afternoon${index}`}
-												id={`afternoon${index}`}
-												required={
-													!formData.afternoon &&
-													!formData.ceremony &&
-													!formData.evening
-												}
-												checked={formData.afternoon}
+												name={`ceremony${index}`}
+												id={`ceremony${index}`}
+												onInvalid={(e) => {
+													e.currentTarget.setCustomValidity(
+														'You must select at least one of these boxes if you are accepting the invitation!'
+													);
+												}}
+												onInput={(e) => e.currentTarget.setCustomValidity('')}
+												required={checkboxesRequired}
+												key={String(checkboxesRequired)}
+												checked={formData.ceremony}
 												onChange={(e) => {
 													setFormData((c) => {
 														const newData = c.slice();
 														newData[index] = {
 															...newData[index],
-															afternoon: e.target.checked,
+															ceremony: e.target.checked,
 														};
 														return newData;
 													});
 												}}
 											/>
-											<Label htmlFor={`afternoon${index}`}>
-												Afternoon reception
+											<Label htmlFor={`ceremony${index}`}>
+												Wedding ceremony
 											</Label>
 										</div>
-									)}
-									<div className='flex items-center gap-2'>
-										<Checkbox
-											name={`evening${index}`}
-											id={`evening${index}`}
-											required={
-												!formData.afternoon &&
-												!formData.ceremony &&
-												!formData.evening
-											}
-											checked={formData.evening}
-											onChange={(e) => {
-												setFormData((c) => {
-													const newData = c.slice();
-													newData[index] = {
-														...newData[index],
-														evening: e.target.checked,
-													};
-													return newData;
-												});
-											}}
-										/>
-										<Label htmlFor={`evening${index}`}>Evening reception</Label>
-									</div>
-								</fieldset>
-								{formData.evening || formData.afternoon ? (
-									<>
-										<div className='max-w-md'>
-											<div className='mb-2 block'>
-												<Label
-													htmlFor={`dietary${index}`}
-													value='Dietary requirements'
-												/>
-											</div>
-											<Select
-												name={`dietary${index}`}
-												id={`dietary${index}`}
-												required
-												onChange={(e) => {
-													setDietary(
-														e.target.value as
-															| 'none'
-															| 'vegetarian'
-															| 'pescetarian'
-															| 'other'
-													);
-													if (e.target.value !== 'other') {
-														setFormData((c) => {
-															const newData = c.slice();
-															newData[index] = {
-																...newData[index],
-																dietary: undefined,
-															};
-															return newData;
-														});
-													}
-												}}
-												value={dietary}>
-												<option value={'none'}>No dietary requirements</option>
-												<option value={'vegetarian'}>Vegetarian</option>
-												<option value={'pescetarian'}>Pescetarian</option>
-												<option value={'other'}>Other</option>
-											</Select>
-										</div>
-										{dietary === 'other' && (
-											<div className='max-w-md'>
-												<Label
-													htmlFor={`dietarydetail${index}`}
-													value='Please provide details'
-												/>
-
-												<Textarea
-													name={`dietarydetail${index}`}
-													id={`dietarydetail${index}`}
-													required
-													value={formData.dietary}
-													placeholder='Detail your dietary requirements here'
-													rows={6}
-													onChange={(e) => {
-														setFormData((c) => {
-															const newData = c.slice();
-															newData[index] = {
-																...newData[index],
-																dietary: e.target.value,
-															};
-															return newData;
-														});
-													}}></Textarea>
-											</div>
-										)}
-										{formData.afternoon && (
+										{invitedToAfternoon && (
 											<div className='flex items-center gap-2'>
 												<Checkbox
-													name={`alcohol${index}`}
-													id={`alcohol${index}`}
-													checked={formData.noAlcohol}
+													name={`afternoon${index}`}
+													id={`afternoon${index}`}
+													required={checkboxesRequired}
+													key={String(checkboxesRequired)}
+													checked={formData.afternoon}
 													onChange={(e) => {
 														setFormData((c) => {
 															const newData = c.slice();
 															newData[index] = {
 																...newData[index],
-																noAlcohol: e.target.checked,
+																afternoon: e.target.checked,
 															};
 															return newData;
 														});
 													}}
 												/>
-												<Label htmlFor={`alcohol${index}`}>
-													Orange juice in place of alcohol?
+												<Label htmlFor={`afternoon${index}`}>
+													Afternoon reception
 												</Label>
 											</div>
 										)}
-										<div className='text-gray-500'>
-											<span
-												onClick={() => setShowFoodInfoModal(true)}
-												className='text-xs font-normal'>
-												Please click here to view information about the food and
-												dtink that will be served.
-											</span>
+										<div className='flex items-center gap-2'>
+											<Checkbox
+												name={`evening${index}`}
+												id={`evening${index}`}
+												required={checkboxesRequired}
+												key={String(checkboxesRequired)}
+												checked={formData.evening}
+												onChange={(e) => {
+													setFormData((c) => {
+														const newData = c.slice();
+														newData[index] = {
+															...newData[index],
+															evening: e.target.checked,
+														};
+														return newData;
+													});
+												}}
+											/>
+											<Label htmlFor={`evening${index}`}>
+												Evening reception
+											</Label>
 										</div>
-										<FoodInformationModal
-											showFoodInfoModal={showFoodInfoModal}
-											setShowFoodInfoModal={setShowFoodInfoModal}
-											invitedToAfternoon={
-												invitedToAfternoon
-											}></FoodInformationModal>
-									</>
-								) : (
-									<></>
-								)}
-								<div className='max-w-md'>
-									<Label
-										htmlFor={`comments${index}`}
-										value={`Is there anything else you'd like us to know?`}
-									/>
+									</fieldset>
+									{formData.evening || formData.afternoon ? (
+										<>
+											<div className='max-w-md'>
+												<div className='mb-2 block'>
+													<Label
+														htmlFor={`dietary${index}`}
+														value='Dietary requirements'
+													/>
+												</div>
+												<Select
+													name={`dietary${index}`}
+													id={`dietary${index}`}
+													required
+													onChange={(e) => {
+														setDietary(
+															e.target.value as
+																| 'none'
+																| 'vegetarian'
+																| 'pescetarian'
+																| 'other'
+														);
+														if (e.target.value !== 'other') {
+															setFormData((c) => {
+																const newData = c.slice();
+																newData[index] = {
+																	...newData[index],
+																	dietary: undefined,
+																};
+																return newData;
+															});
+														}
+													}}
+													value={dietary}>
+													<option value={'none'}>
+														No dietary requirements
+													</option>
+													<option value={'vegetarian'}>Vegetarian</option>
+													<option value={'pescetarian'}>Pescetarian</option>
+													<option value={'other'}>Other</option>
+												</Select>
+											</div>
+											{dietary === 'other' && (
+												<div className='max-w-md'>
+													<Label
+														htmlFor={`dietarydetail${index}`}
+														value='Please provide details'
+													/>
 
-									<Textarea
-										name={`comments${index}`}
-										id={`comments${index}`}
-										value={formData.comments}
-										rows={6}
-										onChange={(e) => {
-											setFormData((c) => {
-												const newData = c.slice();
-												newData[index] = {
-													...newData[index],
-													comments: e.target.value,
-												};
-												return newData;
-											});
-										}}></Textarea>
-								</div>
-							</>
-						)}
-					</>
-				) : (
-					<></>
-				)}
+													<Textarea
+														name={`dietarydetail${index}`}
+														id={`dietarydetail${index}`}
+														required
+														value={formData.dietary}
+														placeholder='Detail your dietary requirements here'
+														rows={6}
+														onChange={(e) => {
+															setFormData((c) => {
+																const newData = c.slice();
+																newData[index] = {
+																	...newData[index],
+																	dietary: e.target.value,
+																};
+																return newData;
+															});
+														}}></Textarea>
+												</div>
+											)}
+											{formData.afternoon && (
+												<div className='flex items-center gap-2'>
+													<Checkbox
+														name={`alcohol${index}`}
+														id={`alcohol${index}`}
+														checked={formData.noAlcohol}
+														onChange={(e) => {
+															setFormData((c) => {
+																const newData = c.slice();
+																newData[index] = {
+																	...newData[index],
+																	noAlcohol: e.target.checked,
+																};
+																return newData;
+															});
+														}}
+													/>
+													<Label htmlFor={`alcohol${index}`}>
+														Orange juice in place of alcohol?
+													</Label>
+												</div>
+											)}
+											<div className='text-gray-500'>
+												<span
+													onClick={() => setShowFoodInfoModal(true)}
+													className='text-xs font-normal'>
+													Please click here to view information about the food
+													and dtink that will be served.
+												</span>
+											</div>
+											<FoodInformationModal
+												showFoodInfoModal={showFoodInfoModal}
+												setShowFoodInfoModal={setShowFoodInfoModal}
+												invitedToAfternoon={
+													invitedToAfternoon
+												}></FoodInformationModal>
+										</>
+									) : (
+										<></>
+									)}
+									<div className='max-w-md'>
+										<Label
+											htmlFor={`comments${index}`}
+											value={`Is there anything else you'd like us to know?`}
+										/>
+
+										<Textarea
+											name={`comments${index}`}
+											id={`comments${index}`}
+											value={formData.comments}
+											rows={6}
+											onChange={(e) => {
+												setFormData((c) => {
+													const newData = c.slice();
+													newData[index] = {
+														...newData[index],
+														comments: e.target.value,
+													};
+													return newData;
+												});
+											}}></Textarea>
+									</div>
+								</>
+							)}
+						</>
+					) : (
+						<></>
+					)}
+				</div>
 			</Accordion.Content>
 		</Accordion.Panel>
 	);
