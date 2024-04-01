@@ -56,7 +56,7 @@ export default function RSVP() {
 					</h1>
 					{checkRsvpRequestResponse && (
 						<Button
-							className='min-w-24 w-fit bg-secondaryColor hover:bg-darkAccentColor mb-4 '
+							className='min-w-24 max-h-[50px] w-fit bg-secondaryColor hover:bg-darkAccentColor mb-4 '
 							onClick={() => {
 								setCheckRsvpRequestResponse(null);
 							}}>
