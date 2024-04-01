@@ -65,7 +65,7 @@ export default function RSVP() {
 						<div className='flex gap-2'>
 							{!checkRsvpRequestResponse.submittedBy && !submitted && (
 								<Button
-									className='min-w-24 max-h-[50px] w-fit bg-secondaryColor hover:bg-darkAccentColor mb-4 '
+									className='min-w-24 max-h-[50px] w-fit  mb-4 '
 									onClick={() => {
 										localStorage.removeItem(
 											checkRsvpRequestResponse.submitterName.toLowerCase()
@@ -77,7 +77,7 @@ export default function RSVP() {
 								</Button>
 							)}
 							<Button
-								className='min-w-24 max-h-[50px] w-fit bg-secondaryColor hover:bg-darkAccentColor mb-4 '
+								className='min-w-24 max-h-[50px] w-fit  mb-4 '
 								onClick={() => {
 									setCheckRsvpRequestResponse(null);
 								}}>
@@ -163,7 +163,7 @@ type RSVPFormData = Exclude<
 >;
 
 //TODO test unsubscribing when deployed to live site
-//TODO test resizeobserver error
+//TODO test resizeobserver error when deployed to live site
 //TODO test emailing when deployed to live site
 //TODO add content to other pages
 
@@ -707,7 +707,7 @@ function RSVPFormSection({
 														return newData;
 													});
 												}}
-												className='min-w-24 w-fit bg-secondaryColor hover:bg-darkAccentColor'>
+												className='min-w-24 w-fit'>
 												Submit name
 											</Button>
 										</div>
@@ -984,7 +984,7 @@ function FoodInformationModal({
 			</Modal.Body>
 			<Modal.Footer>
 				<Button
-					className='min-w-24 max-h-[50px] w-fit bg-secondaryColor hover:bg-darkAccentColor mb-4 '
+					className='min-w-24 max-h-[50px] w-fit mb-4 '
 					onClick={() => setShowFoodInfoModal(false)}>
 					Close
 				</Button>

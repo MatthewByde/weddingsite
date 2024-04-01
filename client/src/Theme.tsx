@@ -15,7 +15,7 @@ export const customTheme: CustomFlowbiteTheme = {
 				off: 'w-48',
 			},
 			inner:
-				'h-full overflow-y-auto overflow-x-hidden bg-secondaryColor py-4 px-3 items-start flex',
+				'h-full overflow-y-auto overflow-x-hidden bg-secondaryColor py-4 px-3 items-start flex flex-col justify-between',
 		},
 
 		item: {
@@ -40,7 +40,7 @@ export const customTheme: CustomFlowbiteTheme = {
 		},
 	},
 	button: {
-		base: 'border-0 px-0 py-0 justify-center items-center rounded-lg border-0 text-backgroundColor hover:bg-darkAccentColor flex [&_span]:px-2 [&_span]:py-2 transition',
+		base: 'px-0 py-0 justify-center items-center rounded-lg border-0 !bg-secondaryColor text-backgroundColor hover:!bg-darkAccentColor flex [&_span]:px-2 [&_span]:py-2 transition',
 	},
 	accordion: {
 		root: {
