@@ -51,7 +51,7 @@ export default function RSVP() {
 			<section className='flex flex-col gap-2 items-start py-8 px-8 w-full max-w-3xl text-textColor'>
 				<div className='flex justify-between w-full'>
 					<h1
-						className='text-darkAccentColor text-nowrap'
+						className='text-darkAccentColor text-nowrap pr-3'
 						style={{
 							fontFamily: 'argue',
 							fontSize: 'min(max(3.75vw, 2rem), 3.75rem)',
@@ -161,10 +161,8 @@ type RSVPFormData = Exclude<
 
 //TODO test unsubscribing when deployed to live site
 //TODO test emailing when deployed to live site
-//TODO improve look of timer
 //TODO add content to other pages
 
-//TODO testing and styling
 //TODO test validation around duplicate names and +1s and all possible server errors
 //TODO test email styling
 
@@ -688,7 +686,10 @@ function RSVPFormSection({
 														const newData = c.slice();
 														newData[index] = {
 															...newData[index],
-															name: plusOneFirstName + ' ' + plusOneSurname,
+															name:
+																plusOneFirstName.trim() +
+																' ' +
+																plusOneSurname.trim(),
 														};
 														return newData;
 													});
@@ -1013,7 +1014,8 @@ function NameForm({
 		});
 	}, [nameFormData]);
 	const onSubmit = React.useCallback(async () => {
-		const name = nameFormData.firstName + ' ' + nameFormData.surname;
+		const name =
+			nameFormData.firstName.trim() + ' ' + nameFormData.surname.trim();
 		try {
 			const response = await fetch(`/api/checkrsvp?name=${name}`, {
 				method: 'GET',
