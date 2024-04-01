@@ -47,7 +47,7 @@ export default React.forwardRef<HTMLFormElement, FormProps>(function Form(
 			<Button
 				type='submit'
 				formNoValidate={formNoValidate}
-				className='min-w-24 w-fit bg-secondaryColor hover:bg-darkAccentColor'
+				className='min-w-24 w-fit'
 				disabled={sending}>
 				{sending ? (
 					<>

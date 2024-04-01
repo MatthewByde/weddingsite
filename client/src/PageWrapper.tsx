@@ -190,6 +190,11 @@ function NavBar({
 					</Sidebar.Item>
 				</Sidebar.ItemGroup>
 			</Sidebar.Items>
+			<Link
+				to='/about'
+				className='underline text-darkAccentColor'>
+				About
+			</Link>
 		</Sidebar>
 	);
 }
