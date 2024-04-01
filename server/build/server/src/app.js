@@ -18,10 +18,10 @@ const logger = winston.createLogger({
     ],
 });
 logger.info('Starting server');
-const rsvpData = JSON.parse(readFileSync('./build/assets/rsvp.json').toString('utf8'));
+const rsvpData = JSON.parse(readFileSync('./build/server/src/assets/rsvp.json').toString('utf8'));
 logger.info('Read JSON data');
 logger.info(JSON.stringify(rsvpData));
-const pk = readFileSync('./build/assets/pk');
+const pk = readFileSync('./build/server/src/assets/pk');
 logger.info('Read public key');
 const nonces = [];
 function checkNonce(nonce) {
