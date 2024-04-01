@@ -25,6 +25,7 @@ async function main() {
     do {
         nextIndex = records.findIndex((e) => e['Invite'] !== String(inviteIndex));
         const body = {
+            plusOnes: parseInt(records[0].Plusones),
             inviteId: randomUUID(),
             adminAuth: await getNonce(keys, 'http://localhost:8080/api/auth'),
             invitedToAfternoon: records[0].Afternoon === 'TRUE',

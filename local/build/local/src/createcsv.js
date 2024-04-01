@@ -44,7 +44,22 @@ async function main() {
             time: e[1].data.time,
             ip: e[1].data.ip,
         }));
-        const peopleStr = stringify(people, { header: true, bom: true });
+        console.log(people);
+        const peopleStr = stringify(people, {
+            header: true,
+            bom: true,
+            columns: [
+                'afternoon',
+                'evening',
+                'ceremony',
+                'dietary',
+                'comments',
+                'noAlcohol',
+                'vegetarian',
+                'pescetarian',
+                'name',
+            ],
+        });
         const invitesStr = stringify(invites, { header: true, bom: true });
         writeFileSync('people.csv', peopleStr);
         writeFileSync('invites.csv', invitesStr);
