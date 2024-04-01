@@ -45,6 +45,9 @@ export default function RSVP() {
 		React.useState<
 			(CheckRSVPRequestResponse<'success'> & { submitterName: string }) | null
 		>(null);
+	React.useEffect(() => {
+		setSubmitted(false);
+	}, [checkRsvpRequestResponse?.submitterName]);
 	const [resetFormKey, setResetFormKey] = React.useState(0);
 	return (
 		<PageWrapper>
@@ -160,11 +163,11 @@ type RSVPFormData = Exclude<
 >;
 
 //TODO test unsubscribing when deployed to live site
+//TODO test resizeobserver error
 //TODO test emailing when deployed to live site
 //TODO add content to other pages
 
 //TODO test validation around duplicate names and +1s and all possible server errors
-//TODO test email styling
 
 type StoredFormData = {
 	email: string;
@@ -418,8 +421,12 @@ function RSVPForm({
 		<>
 			{submitted ? (
 				<h1>
-					RSVP submitted successfully, thanks! We look forward to celebrating
-					with you!
+					{`RSVP submitted successfully, thanks!${
+						rsvpFormData.some((e) => e.afternoon || e.ceremony || e.evening)
+							? ` We look forward to celebrating
+					with you!`
+							: ''
+					}`}
 				</h1>
 			) : (
 				<Form
@@ -610,7 +617,10 @@ function RSVPFormSection({
 								onInput={(e) => e.currentTarget.setCustomValidity('')}
 								required={statusRequired}
 								key={String(statusRequired)}
-								style={{ clipPath: 'circle(46% at 50% 50%)' }}
+								style={{
+									clipPath: 'circle(46% at 50% 50%)',
+									filter: 'brightness(125%) contrast(250%)',
+								}}
 								name={`accept${index}`}
 								id={`accept${index}`}
 								checked={status === 'accepts'}
@@ -630,7 +640,10 @@ function RSVPFormSection({
 							<Checkbox
 								required={statusRequired}
 								key={String(statusRequired)}
-								style={{ clipPath: 'circle(46% at 50% 50%)' }}
+								style={{
+									clipPath: 'circle(46% at 50% 50%)',
+									filter: 'brightness(125%) contrast(250%)',
+								}}
 								name={`decline${index}`}
 								id={`decline${index}`}
 								checked={status === 'declines'}
@@ -709,6 +722,7 @@ function RSVPFormSection({
 										</legend>
 										<div className='flex items-center gap-2'>
 											<Checkbox
+												style={{ boxShadow: '0px 0px 2px 1px' }}
 												name={`ceremony${index}`}
 												id={`ceremony${index}`}
 												onInvalid={(e) => {
@@ -738,6 +752,7 @@ function RSVPFormSection({
 										{invitedToAfternoon && (
 											<div className='flex items-center gap-2'>
 												<Checkbox
+													style={{ boxShadow: '0px 0px 2px 1px' }}
 													name={`afternoon${index}`}
 													id={`afternoon${index}`}
 													required={checkboxesRequired}
@@ -761,6 +776,7 @@ function RSVPFormSection({
 										)}
 										<div className='flex items-center gap-2'>
 											<Checkbox
+												style={{ boxShadow: '0px 0px 2px 1px' }}
 												name={`evening${index}`}
 												id={`evening${index}`}
 												required={checkboxesRequired}
@@ -852,6 +868,7 @@ function RSVPFormSection({
 											{formData.afternoon && (
 												<div className='flex items-center gap-2'>
 													<Checkbox
+														style={{ boxShadow: '0px 0px 2px 1px' }}
 														name={`alcohol${index}`}
 														id={`alcohol${index}`}
 														checked={formData.noAlcohol}
@@ -871,7 +888,7 @@ function RSVPFormSection({
 													</Label>
 												</div>
 											)}
-											<div className='text-gray-500'>
+											<div className='text-gray-600'>
 												<span
 													onClick={() => setShowFoodInfoModal(true)}
 													className='text-sm font-normal hover:underline'>
