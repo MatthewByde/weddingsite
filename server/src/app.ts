@@ -25,6 +25,8 @@ import { crypto_box_seal, randombytes_buf } from '@devtomio/sodium';
 import emailInfo from './assets/confidential.json' with {type: 'json'};
 import winston from 'winston';
 
+const RSVP_FILE_PATH = './build/server/src/assets/rsvp.json';
+
 const logger = winston.createLogger({
 	format: winston.format.combine(
 		winston.format.timestamp(),
@@ -44,12 +46,12 @@ const logger = winston.createLogger({
 logger.info('Starting server');
 
 const rsvpData = JSON.parse(
-	readFileSync('./build/assets/rsvp.json').toString('utf8')
+	readFileSync(RSVP_FILE_PATH).toString('utf8')
 ) as RSVPStoredJSONSchema;
 
 logger.info('Read JSON data');
 logger.info(JSON.stringify(rsvpData));
-const pk = readFileSync('./build/assets/pk');
+const pk = readFileSync('./build/server/src/assets/pk');
 
 logger.info('Read public key');
 
@@ -106,7 +108,7 @@ export default function main() {
 function writeJson() {
 	logger.silly('writing json');
 	writeFile(
-		'./build/assets/rsvp.json',
+		RSVP_FILE_PATH,
 		JSON.stringify(rsvpData),
 		{ encoding: 'utf-8', flag: 'w', flush: true },
 		afterWriteJson
