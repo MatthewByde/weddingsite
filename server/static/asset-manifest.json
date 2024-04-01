@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/static/css/main.afbaf11d.css",
+    "main.js": "/static/js/main.abab646d.js",
+    "static/media/bg.jpg": "/static/media/bg.d4dccc5dc3c3f7e9157f.jpg",
+    "static/media/banner.png": "/static/media/banner.014f4fc39a55d2e48410.png",
+    "static/media/argue.otf": "/static/media/argue.733f15141713bea0fc54.otf",
+    "index.html": "/index.html",
+    "main.afbaf11d.css.map": "/static/css/main.afbaf11d.css.map",
+    "main.abab646d.js.map": "/static/js/main.abab646d.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.afbaf11d.css",
+    "static/js/main.abab646d.js"
+  ]
+}
