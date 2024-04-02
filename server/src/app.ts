@@ -102,7 +102,12 @@ export default function main() {
 	unsubscribeSetupHandler(app);
 	pkSetupHandler(app);
 	deleteinviteSetupHandler(app);
+
 	app.use(express.static('static'));
+	
+	app.get('*', function(_, res) {
+		res.sendFile('static/index.html');
+	});
 }
 
 function writeJson() {
