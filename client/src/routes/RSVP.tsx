@@ -162,13 +162,6 @@ type RSVPFormData = Exclude<
 	undefined
 >;
 
-//TODO test unsubscribing when deployed to live site
-//TODO test resizeobserver error when deployed to live site
-//TODO test emailing when deployed to live site
-//TODO add content to other pages
-
-//TODO test validation around duplicate names and +1s and all possible server errors
-
 type StoredFormData = {
 	email: string;
 	rsvpFormData: RSVPFormData;
