@@ -104,9 +104,9 @@ export default function main() {
 	deleteinviteSetupHandler(app);
 
 	app.use(express.static('static'));
-	
+
 	app.get('*', function(_, res) {
-		res.sendFile('static/index.html');
+		res.sendFile('static/index.html', {root: process.cwd()});
 	});
 }
 

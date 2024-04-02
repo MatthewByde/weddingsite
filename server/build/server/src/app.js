@@ -18,10 +18,10 @@ const logger = winston.createLogger({
         }),
     ],
 });
+logger.info(process.cwd());
 logger.info('Starting server');
 const rsvpData = JSON.parse(readFileSync(RSVP_FILE_PATH).toString('utf8'));
 logger.info('Read JSON data');
-logger.info(JSON.stringify(rsvpData));
 const pk = readFileSync('./build/server/src/assets/pk');
 logger.info('Read public key');
 const nonces = [];
@@ -62,7 +62,10 @@ export default function main() {
     unsubscribeSetupHandler(app);
     pkSetupHandler(app);
     deleteinviteSetupHandler(app);
-    app.use(express.static('../static'));
+    app.use(express.static('static'));
+    app.get('*', function (_, res) {
+        res.sendFile(`${__dirname}/static/index.html`);
+    });
 }
 function writeJson() {
     logger.silly('writing json');
