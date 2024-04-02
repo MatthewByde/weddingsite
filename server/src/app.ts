@@ -102,7 +102,7 @@ export default function main() {
 	unsubscribeSetupHandler(app);
 	pkSetupHandler(app);
 	deleteinviteSetupHandler(app);
-	app.use(express.static('../../../static'));
+	app.use(express.static('./static'));
 }
 
 function writeJson() {
