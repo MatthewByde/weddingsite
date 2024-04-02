@@ -44,7 +44,6 @@ async function main() {
             time: e[1].data.time,
             ip: e[1].data.ip,
         }));
-        console.log(people);
         const peopleStr = stringify(people, {
             header: true,
             bom: true,
