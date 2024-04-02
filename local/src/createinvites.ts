@@ -8,7 +8,7 @@ import {
 import { randomUUID } from 'crypto';
 
 async function main() {
-	const URL = 'https://matthewandadelewedding.co.uk'; //'http://localhost:8080';
+	const URL = 'http://localhost:8080'; // https://matthewandadelewedding.co.uk';
 	const content = readFileSync(`input.csv`);
 	const sk = readFileSync('../../sk');
 	const pk = readFileSync('../server/build/server/src/assets/pk');

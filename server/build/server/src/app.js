@@ -12,13 +12,12 @@ const logger = winston.createLogger({
         new winston.transports.File({ filename: 'error.log', level: 'warn' }),
         new winston.transports.File({ filename: 'verbose.log', level: 'verbose' }),
         new winston.transports.File({ filename: 'info.log', level: 'info' }),
-        new winston.transports.Console({
-            format: winston.format.simple(),
-            level: 'info',
-        }),
+        // new winston.transports.Console({ 
+        // 	format: winston.format.simple(),
+        // 	level: 'info',
+        // }),
     ],
 });
-logger.info(process.cwd());
 logger.info('Starting server');
 const rsvpData = JSON.parse(readFileSync(RSVP_FILE_PATH).toString('utf8'));
 logger.info('Read JSON data');
@@ -64,7 +63,7 @@ export default function main() {
     deleteinviteSetupHandler(app);
     app.use(express.static('static'));
     app.get('*', function (_, res) {
-        res.sendFile(`${__dirname}/static/index.html`);
+        res.sendFile('static/index.html', { root: process.cwd() });
     });
 }
 function writeJson() {

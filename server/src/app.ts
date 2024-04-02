@@ -36,10 +36,10 @@ const logger = winston.createLogger({
 		new winston.transports.File({ filename: 'error.log', level: 'warn' }),
 		new winston.transports.File({ filename: 'verbose.log', level: 'verbose' }),
 		new winston.transports.File({ filename: 'info.log', level: 'info' }),
-		new winston.transports.Console({ 
-			format: winston.format.simple(),
-			level: 'info',
-		}),
+		// new winston.transports.Console({ 
+		// 	format: winston.format.simple(),
+		// 	level: 'info',
+		// }),
 	],
 });
 
