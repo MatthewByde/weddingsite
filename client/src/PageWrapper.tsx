@@ -13,26 +13,32 @@ const HEADER_SIZE = '80px';
 
 const WEDDING_DATE = dayjs('2024-11-09T12:00:00Z');
 
+function updateTimer(setTimer: React.Dispatch<React.SetStateAction<string>>) {
+	const secondDiff = WEDDING_DATE.diff(dayjs(), 'seconds');
+	const minuteDiff = Math.floor(secondDiff / 60);
+	const hourDiff = Math.floor(minuteDiff / 60);
+	const days = Math.floor(hourDiff / 24);
+	const hours = dayjs().hour(hourDiff).hour();
+	const minutes = dayjs().minute(minuteDiff).minute();
+	const seconds = dayjs().second(secondDiff).second();
+	setTimer(
+		`${days} days, ${String(hours).padStart(2, '0')}:${String(minutes).padStart(
+			2,
+			'0'
+		)}:${String(seconds).padStart(2, '0')}`
+	);
+}
+
 export default function PageWrapper({
 	children,
 }: {
 	children?: React.ReactNode;
 }) {
 	const [timer, setTimer] = React.useState<string>('');
-	setInterval(() => {
-		const secondDiff = WEDDING_DATE.diff(dayjs(), 'seconds');
-		const minuteDiff = Math.floor(secondDiff / 60);
-		const hourDiff = Math.floor(minuteDiff / 60);
-		const days = Math.floor(hourDiff / 24);
-		const hours = dayjs().hour(hourDiff).hour();
-		const minutes = dayjs().minute(minuteDiff).minute();
-		const seconds = dayjs().second(secondDiff).second();
-		setTimer(
-			`${days} days, ${String(hours).padStart(2, '0')}:${String(
-				minutes
-			).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-		);
-	}, 1000);
+	React.useEffect(() => {
+		updateTimer(setTimer);
+	}, []);
+	setInterval(() => updateTimer(setTimer), 1000);
 	const { isMobile } = React.useContext(WindowWidthContext);
 	const ref = React.useRef<HTMLDivElement>(null);
 	const fullvh = use100vh();
@@ -79,10 +85,13 @@ export default function PageWrapper({
 				</div>
 				<Divider orientation='vertical' />
 				<div
-					className='h-full bg-fit'
+					className='bg-fit overflow-auto'
 					style={{
 						backgroundImage: `url(${bg})`,
 						width: `calc(100% - ${navCollapsed ? '4rem' : '12rem'}`,
+						height: `calc(${
+							fullvh ? `${fullvh}px` : '100vh'
+						} - ${HEADER_SIZE})`,
 					}}>
 					<main
 						className='w-full max-h-fit'
