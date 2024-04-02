@@ -1,4 +1,4 @@
-import { FaBusAlt, FaCar } from 'react-icons/fa';
+import { FaBusAlt, FaCar, FaBed } from 'react-icons/fa';
 import PageWrapper from '../PageWrapper';
 import nationalRailLogo from '../assets/National_Rail_logo.png';
 import uberLogo from '../assets/uber_icon.png';
@@ -161,6 +161,30 @@ export default function Travel() {
 								<p>
 									Taxis, including Ubers and Bolts, also operate in the area.
 								</p>
+							</div>
+							<p className='text-xl pt-4'>Staying overnight?</p>
+							<div className='flex gap-4 items-center'>
+								<FaBed className='min-w-8 h-auto'></FaBed>
+								<div className='flex flex-col'>
+									<p>
+										Westmead Hotel is providing discounted rates for our guests!
+										<br></br>
+										£80 for a single room, £90 for a double/twin, or £110 for a
+										superior room. All rates are inclusive of breakfast.
+										<br></br>
+										{`To book, call them directly on `}
+										<a
+											className='underline text-darkAccentColor'
+											href='tel:012144512021'>
+											0121 445 12021
+										</a>
+										{` and quote group reference number BK144959.`}
+									</p>
+									<p>
+										Many other hotels are also available in the local area and
+										around Birmingham, should you prefer.
+									</p>
+								</div>
 							</div>
 						</div>
 						<iframe
