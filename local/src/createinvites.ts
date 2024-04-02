@@ -8,9 +8,10 @@ import {
 import { randomUUID } from 'crypto';
 
 async function main() {
+	const URL = 'https://matthewandadelewedding.co.uk'; //'http://localhost:8080';
 	const content = readFileSync(`input.csv`);
 	const sk = readFileSync('../../sk');
-	const pk = readFileSync('../server/build/assets/pk');
+	const pk = readFileSync('../server/build/server/src/assets/pk');
 	const keys = {
 		adminKey: Uint8Array.from(sk),
 		publicKey: Uint8Array.from(pk),
@@ -38,14 +39,14 @@ async function main() {
 		const body: UpdateRSVPRequestBody = {
 			plusOnes: parseInt(records[0].Plusones),
 			inviteId: randomUUID(),
-			adminAuth: await getNonce(keys, 'http://localhost:8080/api/auth'),
+			adminAuth: await getNonce(keys, `${URL}/api/auth`),
 			invitedToAfternoon: records[0].Afternoon === 'TRUE',
 			people: records
 				.slice(0, nextIndex === -1 ? undefined : nextIndex)
 				.map((e) => ({ name: e.Name })),
 		};
 		try {
-			const resp = await fetch('http://localhost:8080/api/updatersvp', {
+			const resp = await fetch(`${URL}/api/updatersvp`, {
 				body: JSON.stringify(body),
 				method: 'POST',
 				headers: {
