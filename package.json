@@ -1,8 +1,7 @@
 {
 	"scripts": {
 		"dev": "(cd server && nodemon -e ts,tsx --exec \"tsc --build && node build/server/src/app.js\" &) && (cd client && npm run startclient &)",
-		"build": "cd server && tsc --build && cd ../client && npm run buildclient && rm -rf ../server/static && mv build ../server/static && git checkout -b deploy && git add ../server/static && git add ../server/build && git commit -m \"deploy\" && git push --force --set-upstream origin deploy && git checkout - && git branch -D deploy",
-		"server": "git fetch && git checkout deploy && git reset --hard origin/deploy && node server/build/server/src/app.js"
+		"build": "cd server && tsc --build && cd ../client && npm run buildclient && rm -rf ../server/static && mv build ../server/static && git checkout -b deploy && git add ../server/static && git add ../server/build && git commit -m \"deploy\" && git push --force --set-upstream origin deploy && git checkout - && git branch -D deploy"
 	},
 	"devDependencies": {
 		"@typescript-eslint/eslint-plugin": "^7.0.2",

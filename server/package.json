@@ -3,7 +3,9 @@
 	"version": "1.0.0",
 	"type": "module",
 	"main": "src/app.ts",
-	"scripts": {},
+	"scripts": {
+		"server": "git fetch && git checkout deploy && git reset --hard origin/deploy && node build/server/src/app.js"
+	},
 	"dependencies": {
 		"@devtomio/sodium": "^0.3.0",
 		"@react-email/components": "0.0.15",
