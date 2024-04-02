@@ -4,41 +4,41 @@ import * as Icons from 'react-icons/hi2';
 import { NavCollapsedContext, WindowWidthContext } from './App';
 import bg from './assets/bg.jpg'; //TODO https://www.freepik.com/free-photo/concrete-wall-with-flowers_3164817.htm#query=wedding%20background&position=0&from_view=keyword&track=ais&uuid=aca60d95-755a-4828-88fa-7ebe1118f085 ATTRIBUTE
 import { Link, useLocation } from 'react-router-dom';
-import { use100vh } from 'react-div-100vh';
+import Div100vh, { use100vh } from 'react-div-100vh';
 import Divider from './lib/Divider';
-import dayjs from 'dayjs';
+// import dayjs from 'dayjs';
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 
 const HEADER_SIZE = '80px';
 
-const WEDDING_DATE = dayjs('2024-11-09T12:00:00Z');
+// const WEDDING_DATE = dayjs('2024-11-09T12:00:00Z');
 
-function updateTimer(setTimer: React.Dispatch<React.SetStateAction<string>>) {
-	const secondDiff = WEDDING_DATE.diff(dayjs(), 'seconds');
-	const minuteDiff = Math.floor(secondDiff / 60);
-	const hourDiff = Math.floor(minuteDiff / 60);
-	const days = Math.floor(hourDiff / 24);
-	const hours = dayjs().hour(hourDiff).hour();
-	const minutes = dayjs().minute(minuteDiff).minute();
-	const seconds = dayjs().second(secondDiff).second();
-	setTimer(
-		`${days} days, ${String(hours).padStart(2, '0')}:${String(minutes).padStart(
-			2,
-			'0'
-		)}:${String(seconds).padStart(2, '0')}`
-	);
-}
+// function updateTimer(setTimer: React.Dispatch<React.SetStateAction<string>>) {
+// 	const secondDiff = WEDDING_DATE.diff(dayjs(), 'seconds');
+// 	const minuteDiff = Math.floor(secondDiff / 60);
+// 	const hourDiff = Math.floor(minuteDiff / 60);
+// 	const days = Math.floor(hourDiff / 24);
+// 	const hours = dayjs().hour(hourDiff).hour();
+// 	const minutes = dayjs().minute(minuteDiff).minute();
+// 	const seconds = dayjs().second(secondDiff).second();
+// 	setTimer(
+// 		`${days} days, ${String(hours).padStart(2, '0')}:${String(minutes).padStart(
+// 			2,
+// 			'0'
+// 		)}:${String(seconds).padStart(2, '0')}`
+// 	);
+// }
 
 export default function PageWrapper({
 	children,
 }: {
 	children?: React.ReactNode;
 }) {
-	const [timer, setTimer] = React.useState<string>('');
-	React.useEffect(() => {
-		updateTimer(setTimer);
-	}, []);
-	setInterval(() => updateTimer(setTimer), 1000);
+	// const [timer, setTimer] = React.useState<string>('');
+	// React.useEffect(() => {
+	// 	updateTimer(setTimer);
+	// }, []);
+	// setInterval(() => updateTimer(setTimer), 1000);
 	const { isMobile } = React.useContext(WindowWidthContext);
 	const ref = React.useRef<HTMLDivElement>(null);
 	const fullvh = use100vh();
@@ -51,8 +51,8 @@ export default function PageWrapper({
 		}
 	}, [isMobile, setNavCollapsed, location.pathname]);
 	return (
-		<div
-			className='h-full flex flex-col'
+		<Div100vh
+			className='flex flex-col'
 			ref={ref}>
 			<header
 				className='w-full bg-secondaryColor flex sticky top-0 z-50 justify-between'
@@ -66,7 +66,7 @@ export default function PageWrapper({
 					<span className='text-lg'>Matthew</span>
 				</Link>
 				<span className='h-fit self-center justify-self-end p-2 text-lightAccentColor mr-2 font-medium text-lg min-w-[10.5rem]'>
-					{timer}
+					{fullvh}
 				</span>
 			</header>
 			<div className='flex'>
@@ -109,7 +109,7 @@ export default function PageWrapper({
 			</div>
 
 			<footer></footer>
-		</div>
+		</Div100vh>
 	);
 }
 
