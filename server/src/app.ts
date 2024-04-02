@@ -50,7 +50,7 @@ const rsvpData = JSON.parse(
 ) as RSVPStoredJSONSchema;
 
 logger.info('Read JSON data');
-logger.info(JSON.stringify(rsvpData));
+
 const pk = readFileSync('./build/server/src/assets/pk');
 
 logger.info('Read public key');
@@ -102,7 +102,7 @@ export default function main() {
 	unsubscribeSetupHandler(app);
 	pkSetupHandler(app);
 	deleteinviteSetupHandler(app);
-	app.use(express.static('../static'));
+	app.use(express.static('../../../static'));
 }
 
 function writeJson() {
