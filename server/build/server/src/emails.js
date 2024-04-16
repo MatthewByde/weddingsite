@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
     },
 });
 export async function sendRSVPEmail(data) {
-    if (!data.email) {
+    if (!data.emailReceipt || !data.email) {
         return;
     }
     const email = createRSVPEmail(data);
@@ -70,7 +70,7 @@ function createRSVPEmail(data) {
     };
 }
 function RSVPEmail({ data }) {
-    const { ip, people, submitterName, allowSaveEmail, inviteId } = data;
+    const { people, submitterName, emailUpdates, inviteId, liftSpaces, needOrCanGiveLift, locationLift, ceremonyLift, liftEmailConsent } = data;
     return (React.createElement(Html, null,
         React.createElement(Head, null),
         React.createElement(Preview, null, `Your RSVP submission for Matthew and Adele's wedding`),
@@ -82,24 +82,29 @@ function RSVPEmail({ data }) {
                             React.createElement(Img, { src: 'cid:image', alt: 'Matthew and adele wedding banner', width: '100%', className: 'm-0 border-0 p-0 block' }))),
                     React.createElement(Section, { style: upperSection },
                         React.createElement(Heading, { style: h1 }, `Thanks for filling out the RSVP form!`),
-                        people?.map((e, i) => (React.createElement(RSVPEmailSection, { key: i, person: e })))),
+                        people?.map((e, i) => (React.createElement(RSVPEmailSection, { key: i, person: e }))),
+                        !needOrCanGiveLift || needOrCanGiveLift === 'none' ? React.createElement(React.Fragment, null) :
+                            React.createElement(React.Fragment, null,
+                                React.createElement(Text, { style: h3 }, "Lift arrangement"),
+                                React.createElement(Text, { style: mainText }, `${needOrCanGiveLift === 'need' ? 'You would like a lift from ' : 'You could provide a lift from '}${ceremonyLift ? 'the ceremony to the reception' + (locationLift ? ' and ' : '') : ''}${locationLift ? `"${locationLift}" to the ceremony` : ''}, for ${liftSpaces} people. ${liftEmailConsent ? 'You gave consent for us to share your email address with someone who is looking for a lift, if we find you a match.' : ''}`))),
                     React.createElement(Hr, null),
                     React.createElement(Section, { style: lowerSection },
-                        React.createElement(Text, { style: cautionText }, `The above RSVP was submitted at ${new Date().toISOString()} by ${submitterName} from ${ip}`))),
+                        React.createElement(Text, { style: cautionText }, `The above RSVP was submitted at ${new Date().toISOString()} by ${submitterName}`))),
                 React.createElement(Text, { style: footerText },
                     'This message was produced by ',
                     React.createElement(Link, { href: 'https://matthewandadelewedding.co.uk', target: '_blank', style: link }, "matthewandadelewedding.co.uk"),
                     ' at request of a user, and may contain confidential information. If you have received this email in error, please delete it, then ',
                     React.createElement(Link, { href: 'https://matthewandadelewedding.co.uk/contact', target: '_blank', style: link }, "contact us."),
-                    ` ${allowSaveEmail
+                    ` ${emailUpdates
                         ? 'If you are subscribed to our emails and you wish to unsubscribe, '
                         : ''}`,
-                    allowSaveEmail && (React.createElement(Link, { href: `https://matthewandadelewedding.co.uk/api/unsubscribe?id=${inviteId}`, target: '_blank', style: link }, "click here.")))))));
+                    emailUpdates && (React.createElement(Link, { href: `https://matthewandadelewedding.co.uk/api/unsubscribe?id=${inviteId}`, target: '_blank', style: link }, `click here. `)),
+                    React.createElement(Link, { href: `https://matthewandadelewedding.co.uk/privacy`, target: '_blank', style: link }, "Privacy policy"))))));
 }
 function RSVPEmailSection({ person, }) {
     const isComing = person.afternoon || person.evening || person.ceremony;
     return (React.createElement(React.Fragment, null,
-        React.createElement(Heading, { style: h2 }, person.name ?? 'Unknown name'),
+        React.createElement(Heading, { style: h2 }, person.name?.displayName ?? 'Unknown name'),
         isComing ? (React.createElement(React.Fragment, null,
             React.createElement(Text, { style: h3 }, "You graciously accepted the invitation to the following:"),
             React.createElement(Text, { style: mainText },
@@ -151,7 +156,8 @@ function ContactFormEmail({ from, subject, content, userEmail, }) {
                     React.createElement(Link, { href: 'https://matthewandadelewedding.co.uk', target: '_blank', style: link }, "matthewandadelewedding.co.uk"),
                     ' at request of a user, and may contain confidential information. If you have received this email in error, please delete it, then ',
                     React.createElement(Link, { href: 'https://matthewandadelewedding.co.uk/contact', target: '_blank', style: link }, "contact us"),
-                    ".")))));
+                    `. `,
+                    React.createElement(Link, { href: `https://matthewandadelewedding.co.uk/privacy`, target: '_blank', style: link }, "Privacy policy"))))));
 }
 const main = {
     backgroundColor: '#fff',

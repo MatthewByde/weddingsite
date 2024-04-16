@@ -13,6 +13,7 @@ import {
 	RSVP_COMMENTS_MAXCHARS,
 	RSVP_DIETARY_MAXCHARS,
 	RSVP_FULLNAME_MAXCHARS,
+	RSVP_LOCATION_MAXCHARS,
 	ResponseType,
 	SendEmailRequestBody,
 	SendEmailRequestResponse,
@@ -244,9 +245,11 @@ function updatersvpSetupHandler(app: express.Express) {
 				body.people = body.people?.map((e) => {
 					e.comments = e.comments?.slice(0, RSVP_COMMENTS_MAXCHARS);
 					e.dietary = e.dietary?.slice(0, RSVP_DIETARY_MAXCHARS);
-					e.name = e.name.slice(0, RSVP_FULLNAME_MAXCHARS);
+					e.name = {displayName: e.name.displayName.slice(0, RSVP_FULLNAME_MAXCHARS), altNames: e.name.altNames.map(e=>e.slice(0, RSVP_FULLNAME_MAXCHARS))};
 					return e;
 				});
+				body.locationLift = body.locationLift?.slice(0, RSVP_LOCATION_MAXCHARS);
+
 				if (body.adminAuth) {
 					const nonce = Uint8Array.from(Buffer.from(body.adminAuth, 'base64'));
 					if (!checkNonce(nonce)) {
@@ -265,7 +268,7 @@ function updatersvpSetupHandler(app: express.Express) {
 							rsvpData[body.inviteId]?.invitedToAfternoon ??
 							false,
 						data: rsvpData[body.inviteId]?.data ?? '',
-						doNotEmail: rsvpData[body.inviteId]?.doNotEmail ?? false,
+						doNotEmail: body.emailUpdates === undefined ? rsvpData[body.inviteId]?.doNotEmail ?? true : !body.emailUpdates,
 						submittedBy:
 							body.submitterName ?? rsvpData[body.inviteId]?.submittedBy,
 						peopleOnInvite:
@@ -273,13 +276,18 @@ function updatersvpSetupHandler(app: express.Express) {
 							rsvpData[body.inviteId]?.peopleOnInvite ??
 							[],
 						plusOnes: body.plusOnes ?? rsvpData[body.inviteId]?.plusOnes,
+
 					};
 					if (body.people) {
 						const toEncrypt: RSVPRawJSONSchema[string]['data'] = {
-							email: body.allowSaveEmail ? body.email : undefined,
-							ip: body.ip,
+							email: body.email,
 							time: new Date().toISOString(),
 							people: body.people,
+							ceremonyLift: body.ceremonyLift,
+							liftSpaces: body.liftSpaces,
+							locationLift: body.locationLift,
+							liftEmailConsent: body.liftEmailConsent,
+							needOrCanGiveLift: body.needOrCanGiveLift
 						};
 						const encryptedBinary = crypto_box_seal(
 							new TextEncoder().encode(JSON.stringify(toEncrypt)),
@@ -291,6 +299,7 @@ function updatersvpSetupHandler(app: express.Express) {
 					sendRSVPEmail(body);
 					res.status(200).json({});
 				} else {
+									logger.warn(body);
 					if (rsvpData[body.inviteId] === undefined) {
 						logger.warn(
 							`updatersvp received from normal user ${body.submitterName} with invalid invite ID: ${body.inviteId}`
@@ -313,7 +322,7 @@ function updatersvpSetupHandler(app: express.Express) {
 					if (
 						!names ||
 						!rsvpData[body.inviteId].peopleOnInvite.every((e) =>
-							names.includes(e)
+							names.map(e=>e.displayName).includes(e.displayName)
 						)
 					) {
 						logger.warn(
@@ -321,7 +330,7 @@ function updatersvpSetupHandler(app: express.Express) {
 								body.submitterName
 							}, name missing from rsvp ${body.inviteId}. Names on invite: ${
 								rsvpData[body.inviteId].peopleOnInvite
-							}. Names given: ${names}`
+							}. Names given: ${names?.map(e=>e.displayName)}`
 						);
 						res.status(401).json({ 
 							errorMessage: `some data was missing from your rsvp response!`,
@@ -329,7 +338,7 @@ function updatersvpSetupHandler(app: express.Express) {
 						return;
 					}
 					rsvpData[body.inviteId].peopleOnInvite.forEach((e) => 
-						names.splice(names.indexOf(e), 1)
+						names.splice(names.map(e=>e.displayName).indexOf(e.displayName), 1) 
 					);
 					if (names.length !== (rsvpData[body.inviteId].plusOnes ?? 0)) {
 						logger.warn(
@@ -337,7 +346,7 @@ function updatersvpSetupHandler(app: express.Express) {
 								body.submitterName
 							}, incorrect plusones ${body.inviteId}. Names on invite: ${
 								rsvpData[body.inviteId].peopleOnInvite
-							}. Names given: ${names}. Plusones: ${
+							}. Names given: ${names.map(e=>e.displayName)}. Plusones: ${
 								rsvpData[body.inviteId].plusOnes
 							}`
 						);
@@ -346,12 +355,19 @@ function updatersvpSetupHandler(app: express.Express) {
 						});
 						return;
 					}
-					if (
-						!names
-							?.map((e) => e.toLowerCase())
+					logger.warn(names
+							?.flatMap((e) => [e.displayName.toLowerCase(), ...e.altNames.map(e=>e.toLowerCase())])
 							.concat(
 								Object.entries(rsvpData).flatMap((e) =>
-									e[0] === body.inviteId ? [] : e[1].peopleOnInvite.map(e=>e.toLowerCase())
+									e[0] === body.inviteId ? [] : e[1].peopleOnInvite.flatMap(e=>[e.displayName.toLowerCase(), ...e.altNames.map(e=>e.toLowerCase())])
+								)
+							).filter(e=>e!==UNKNOWN_GUEST_NAME.toLowerCase()));
+					if (
+						!names
+							?.flatMap((e) => [e.displayName.toLowerCase(), ...e.altNames.map(e=>e.toLowerCase())])
+							.concat(
+								Object.entries(rsvpData).flatMap((e) =>
+									e[0] === body.inviteId ? [] : e[1].peopleOnInvite.flatMap(e=>[e.displayName.toLowerCase(), ...e.altNames.map(e=>e.toLowerCase())])
 								)
 							).filter(e=>e!==UNKNOWN_GUEST_NAME.toLowerCase())
 							.every((e, i, arr) => {
@@ -361,7 +377,7 @@ function updatersvpSetupHandler(app: express.Express) {
 						logger.error(
 							`updatersvp received from normal user ${
 								body.submitterName
-							}, duplicate name given. Names given: ${names}. Plusones: ${
+							}, duplicate name given. Names given: ${names.map(e=>e.displayName)}. Plusones: ${
 								rsvpData[body.inviteId].plusOnes
 							}`
 						);
@@ -375,10 +391,14 @@ function updatersvpSetupHandler(app: express.Express) {
 						`updatersvp received from normal user ${body.submitterName}: ${body.inviteId}`
 					);
 					const toEncrypt: RSVPRawJSONSchema[string]['data'] = {
-						email: body.allowSaveEmail ? body.email : undefined,
-						ip: body.ip,
-						time: new Date().toISOString(),
-						people: body.people,
+							email: body.email,
+							liftEmailConsent: body.liftEmailConsent,
+							time: new Date().toISOString(),
+							people: body.people,
+							ceremonyLift: body.ceremonyLift,
+							liftSpaces: body.liftSpaces,
+							locationLift: body.locationLift,
+							needOrCanGiveLift: body.needOrCanGiveLift,
 					};
 					const encryptedBinary = crypto_box_seal(
 						new TextEncoder().encode(JSON.stringify(toEncrypt)),
@@ -391,6 +411,7 @@ function updatersvpSetupHandler(app: express.Express) {
 					rsvpData[body.inviteId].peopleOnInvite =
 						body.people?.map((e) => e.name) ?? [];
 					rsvpData[body.inviteId].plusOnes = undefined;
+					rsvpData[body.inviteId].doNotEmail = !body.emailUpdates;
 					sendRSVPEmail(body);
 					res.status(200).json({});
 				}
@@ -458,7 +479,7 @@ function checkrsvpSetupHandler(app: express.Express) {
 				const name = req.query.name as string | undefined;
 				const inviteId = Object.entries(rsvpData).find((e) =>
 					e[1].peopleOnInvite
-						.map((e) => e.toLowerCase())
+						.flatMap((e) => [e.displayName.toLowerCase(), ...e.altNames.map(e=>e.toLowerCase())])
 						.includes((name as string)?.toLowerCase())
 				)?.[0];
 				if (inviteId === undefined) {

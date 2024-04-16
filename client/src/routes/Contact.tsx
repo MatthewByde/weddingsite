@@ -13,6 +13,7 @@ import {
 } from '../constants';
 import { HiEnvelope } from 'react-icons/hi2';
 import Form from '../lib/Form';
+import { PrivacyModal } from './PrivacyPolicy';
 
 const defaultEmailRequestBody: SendEmailRequestBody = {
 	name: '',
@@ -106,6 +107,7 @@ export default function Contact() {
 				<p>Tel: Found on your invitation</p>
 				<p>Or fill out the form below:</p>
 				<Form
+					PrivacyPolicy={PrivacyModal}
 					onSubmit={onSubmit}
 					onDismissToast={() => {
 						setToastType('none');
@@ -119,6 +121,8 @@ export default function Contact() {
 						/>
 						<TextInput
 							id='name'
+							autoCapitalize='words'
+							autoComplete='name'
 							placeholder='Joe Bloggs'
 							required
 							onChange={(e) =>
@@ -142,6 +146,7 @@ export default function Contact() {
 							required
 							id='email'
 							value={emailRequestBody.email}
+							autoComplete='email'
 						/>
 					</div>
 					<div>

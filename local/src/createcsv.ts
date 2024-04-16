@@ -10,7 +10,7 @@ import { stringify } from 'csv-stringify/sync';
 
 async function main() {
 	const sk = readFileSync('../../sk');
-	const pk = readFileSync('../server/build/assets/pk');
+	const pk = readFileSync('../server/build/server/src/assets/pk');
 	const keys = {
 		adminKey: Uint8Array.from(sk),
 		publicKey: Uint8Array.from(pk),
@@ -48,16 +48,22 @@ async function main() {
 			const json: RSVPRawJSONSchema[string]['data'] = JSON.parse(decoded);
 			result[inviteId].data = json;
 		}
-		const people = Object.values(result).flatMap((e) => e.data.people ?? []);
+		const people = Object.values(result)
+			.flatMap((e) => e.data.people ?? [])
+			.map((e) => ({ ...e, name: e.name.displayName }));
 		const invites = Object.entries(result).map((e) => ({
 			inviteId: e[0],
 			doNotEmail: e[1].doNotEmail,
 			invitedToAfternoon: e[1].invitedToAfternoon,
-			peopleOnInvite: e[1].peopleOnInvite,
+			peopleOnInvite: e[1].peopleOnInvite.map((e) => e.displayName),
 			submittedBy: e[1].submittedBy,
 			email: e[1].data.email,
 			time: e[1].data.time,
-			ip: e[1].data.ip,
+			lift: e[1].data.needOrCanGiveLift,
+			location: e[1].data.locationLift,
+			ceremonyLift: e[1].data.ceremonyLift,
+			liftEmailConsent: e[1].data.liftEmailConsent,
+			liftSpaces: e[1].data.liftSpaces,
 		}));
 		const peopleStr = stringify(people, {
 			header: true,

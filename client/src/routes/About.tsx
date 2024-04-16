@@ -1,7 +1,10 @@
 import { IoLogoGithub } from 'react-icons/io5';
 import PageWrapper from '../PageWrapper';
+import React from 'react';
+import { PrivacyModal } from './PrivacyPolicy';
 
 export default function About() {
+	const [showPrivacyModal, setShowPrivacyModal] = React.useState(false);
 	return (
 		<PageWrapper>
 			<section className='flex flex-col gap-2 items-start py-8 px-8 w-full max-w-3xl text-textColor'>
@@ -35,6 +38,15 @@ export default function About() {
 					</a>{' '}
 					on Freepik
 				</p>
+
+				<p
+					className='text-darkAccentColor underline'
+					onClick={() => setShowPrivacyModal(true)}>
+					Click here to view our privacy policy
+				</p>
+				<PrivacyModal
+					showPrivacyModal={showPrivacyModal}
+					setShowPrivacyModal={setShowPrivacyModal}></PrivacyModal>
 			</section>
 		</PageWrapper>
 	);

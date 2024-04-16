@@ -30,6 +30,9 @@ async function main() {
 		Invite: string;
 		Afternoon: string;
 		Plusones: string;
+		AltName1: string;
+		AltName2: string;
+		AltName3: string;
 	}[];
 	let nextIndex;
 	let inviteIndex = 0;
@@ -43,7 +46,12 @@ async function main() {
 			invitedToAfternoon: records[0].Afternoon === 'TRUE',
 			people: records
 				.slice(0, nextIndex === -1 ? undefined : nextIndex)
-				.map((e) => ({ name: e.Name })),
+				.map((e) => ({
+					name: {
+						displayName: e.Name,
+						altNames: [e.AltName1, e.AltName2].filter((e) => e),
+					},
+				})),
 		};
 		try {
 			const resp = await fetch(`${URL}/api/updatersvp`, {

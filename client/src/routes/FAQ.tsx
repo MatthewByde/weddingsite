@@ -83,9 +83,22 @@ const questions: QuestionType[] = [
 				<a
 					className='underline text-darkAccentColor'
 					href={`https://www.google.co.uk/travel/search?q=hotels%20near%20b48%207al&ved=0CAAQ5JsGahgKEwiIsaOc4qOFAxUAAAAAHQAAAAAQ0gE&ts=CAEaOAoaEhYKCy9nLzF2aGx4bW00OgdCNDggN2FsGgASGhIUCgcI6A8QCxgIEgcI6A8QCxgKGAIyAggBKgkKBToDR0JQGgA&qs=CAEgACgAOA1IAA&ap=KigKEgkPO0ektyRKQBHDcvbOOrkAwBISCXlhs5inO0pAEYbl7J3dLfy_MAE`}>
-					click here for a selection
+					click here for a selection (link to external site)
 				</a>
 				.
+			</span>
+		),
+	},
+	{
+		question: 'How do you use and store my personal information?',
+		answer: (
+			<span>
+				{`Please see our `}
+				<Link
+					to='/privacy'
+					className='underline text-darkAccentColor'>
+					privacy policy
+				</Link>
 			</span>
 		),
 	},

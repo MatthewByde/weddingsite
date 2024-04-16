@@ -25,7 +25,9 @@ export default function Travel() {
 
 							<p className='text-xl pt-4'>Arriving by car?</p>
 							<div className='flex gap-4 items-center'>
-								<FaCar className='min-w-8 h-auto'></FaCar>
+								<div className='max-w-[4.5rem] min-w-[4.5rem] flex justify-center'>
+									<FaCar className='min-w-8 h-auto'></FaCar>
+								</div>
 								<p>
 									The church is located a short distance off the A435, A441 and
 									A38, south of the city, and near to the M42 which connects to
@@ -34,7 +36,9 @@ export default function Travel() {
 							</div>
 							<p className='text-xl pt-4'>Arriving by public transport?</p>
 							<div className='flex gap-4 items-center'>
-								<FaBusAlt className='min-w-8 h-auto'></FaBusAlt>
+								<div className='max-w-[4.5rem] min-w-[4.5rem] flex justify-center'>
+									<FaBusAlt className='min-w-8 h-auto'></FaBusAlt>
+								</div>
 								<div className='flex flex-col'>
 									<p>
 										The nearest bus stop to the church is on Monyhull Hall Road
@@ -52,12 +56,14 @@ export default function Travel() {
 								</div>
 							</div>
 							<div className='flex gap-4'>
-								<div className='min-w-8 max-w-8 box-border flex items-center h-auto pt-2 '>
-									{
-										<img
-											alt='National rail double arrow logo'
-											src={nationalRailLogo}></img>
-									}
+								<div className='max-w-[4.5rem] min-w-[4.5rem] flex justify-center'>
+									<div className='min-w-8 max-w-8 box-border flex items-center h-auto pt-2 '>
+										{
+											<img
+												alt='National rail double arrow logo'
+												src={nationalRailLogo}></img>
+										}
+									</div>
 								</div>
 								<p>
 									The nearest railway station is Kings Norton, on the cross city
@@ -66,20 +72,22 @@ export default function Travel() {
 								</p>
 							</div>
 							<div className='flex gap-4 items-center'>
-								<div className='flex flex-col gap-2'>
-									<div className='w-8 box-border flex items-center h-auto pt-2 '>
-										{
-											<img
-												alt='National rail double arrow logo'
-												src={boltLogo}></img>
-										}
-									</div>
-									<div className='w-8 box-border flex items-center h-auto pt-2 '>
-										{
-											<img
-												alt='National rail double arrow logo'
-												src={uberLogo}></img>
-										}
+								<div className='max-w-[4.5rem] min-w-[4.5rem] flex justify-center'>
+									<div className='flex gap-2'>
+										<div className='w-8 box-border flex items-center h-auto pt-2 '>
+											{
+												<img
+													alt='Bolt logo'
+													src={boltLogo}></img>
+											}
+										</div>
+										<div className='w-8 box-border flex items-center h-auto pt-2 '>
+											{
+												<img
+													alt='Uber logo'
+													src={uberLogo}></img>
+											}
+										</div>
 									</div>
 								</div>
 								<p>
@@ -87,14 +95,23 @@ export default function Travel() {
 								</p>
 							</div>
 						</div>
-						<iframe
-							width='600'
-							height='450'
-							style={{ border: 0 }}
-							loading='lazy'
-							allowFullScreen
-							title={'Monyhull Church map'}
-							src='https://www.google.com/maps/embed/v1/view?zoom=17&center=52.4105%2C-1.9026&key=AIzaSyAJnptVwhoEmVwI31055K1xxW0uh8IR3Iw'></iframe>
+						<div className='flex flex-col'>
+							<iframe
+								sandbox='allow-scripts'
+								style={{ border: 0 }}
+								loading='lazy'
+								allowFullScreen
+								title={'Monyhull Church map'}
+								width='450'
+								height='350'
+								src='https://www.openstreetmap.org/export/embed.html?bbox=-2.129287719726563%2C52.32002222038767%2C-1.6761016845703127%2C52.50096672615167&amp;layer=mapnik&amp;marker=52.41052735020586%2C-1.9027145999999675'></iframe>
+
+							<small>
+								<a href='https://www.openstreetmap.org/?mlat=52.4104&amp;mlon=-1.9020#map=14/52.4104/-1.9020'>
+									View Larger Map
+								</a>
+							</small>
+						</div>
 					</div>
 				</section>
 				<Divider
@@ -108,7 +125,9 @@ export default function Travel() {
 							<p>Redditch Road, Hopwood, Birmingham, B48 7AL</p>
 							<p className='text-xl pt-4'>Arriving by car?</p>
 							<div className='flex gap-4 items-center'>
-								<FaCar className='min-w-8 h-auto'></FaCar>
+								<div className='max-w-[4.5rem] min-w-[4.5rem] flex justify-center'>
+									<FaCar className='min-w-8 h-auto'></FaCar>
+								</div>
 								<p>
 									The hotel is a 15 minute drive from Monyhull Church down the
 									A441.<br></br>
@@ -118,7 +137,9 @@ export default function Travel() {
 							</div>
 							<p className='text-xl pt-4'>Arriving by public transport?</p>
 							<div className='flex gap-4 items-center'>
-								<FaBusAlt className='min-w-8 h-auto'></FaBusAlt>
+								<div className='max-w-[4.5rem] min-w-[4.5rem] flex justify-center'>
+									<FaBusAlt className='min-w-8 h-auto'></FaBusAlt>
+								</div>
 								<div className='flex flex-col'>
 									<p>
 										The nearest bus stops to the hotel are the Man on the Moon
@@ -128,32 +149,35 @@ export default function Travel() {
 								</div>
 							</div>
 							<div className='flex gap-4'>
-								<div className='min-w-8 max-w-8 box-border flex items-center h-auto pt-2 '>
-									{
-										<img
-											alt='National rail double arrow logo'
-											src={nationalRailLogo}></img>
-									}
+								<div className='max-w-[4.5rem] min-w-[4.5rem] flex justify-center'>
+									<div className='min-w-8 max-w-8 box-border flex items-center h-auto pt-2 '>
+										{
+											<img
+												alt='National rail double arrow logo'
+												src={nationalRailLogo}></img>
+										}
+									</div>
 								</div>
 								<p>
 									The most convenient railway station is Longbridge, on the
 									cross city line out of Birmingham New Street. <br></br>Barnt
-									Green and Alvechurch railway stations are also nearby.
+									Green station is also nearby.
 								</p>
 							</div>
 							<div className='flex gap-4 items-center'>
-								<div className='flex flex-col gap-2'>
+								<div className='flex gap-2'>
 									<div className='w-8 box-border flex items-center h-auto pt-2 '>
 										{
 											<img
-												alt='National rail double arrow logo'
+												alt='Bolt logo'
 												src={boltLogo}></img>
 										}
 									</div>
+
 									<div className='w-8 box-border flex items-center h-auto pt-2 '>
 										{
 											<img
-												alt='National rail double arrow logo'
+												alt='Uber logo'
 												src={uberLogo}></img>
 										}
 									</div>
@@ -181,20 +205,35 @@ export default function Travel() {
 										{` and quote group reference number BK144959.`}
 									</p>
 									<p>
-										Many other hotels are also available in the local area and
-										around Birmingham, should you prefer.
+										{`Many other hotels are also available in the local area and
+										around Birmingham, should you prefer - `}
+										<a
+											className='underline text-darkAccentColor'
+											href={`https://www.google.co.uk/travel/search?q=hotels%20near%20b48%207al&ved=0CAAQ5JsGahgKEwiIsaOc4qOFAxUAAAAAHQAAAAAQ0gE&ts=CAEaOAoaEhYKCy9nLzF2aGx4bW00OgdCNDggN2FsGgASGhIUCgcI6A8QCxgIEgcI6A8QCxgKGAIyAggBKgkKBToDR0JQGgA&qs=CAEgACgAOA1IAA&ap=KigKEgkPO0ektyRKQBHDcvbOOrkAwBISCXlhs5inO0pAEYbl7J3dLfy_MAE`}>
+											click here for a selection (link to external site)
+										</a>
+										.
 									</p>
 								</div>
 							</div>
 						</div>
-						<iframe
-							width='600'
-							height='450'
-							style={{ border: 0 }}
-							loading='lazy'
-							allowFullScreen
-							title='Monyhull to Westmead directions map'
-							src='https://www.google.com/maps/embed/v1/directions?origin=place_id:ChIJOeFASJW-cEgR24XlMh2lUsA&destination=Westmead%20Hotel%20hopwood&key=AIzaSyAJnptVwhoEmVwI31055K1xxW0uh8IR3Iw'></iframe>
+						<div className='flex flex-col'>
+							<iframe
+								sandbox='allow-scripts'
+								style={{ border: 0 }}
+								loading='lazy'
+								allowFullScreen
+								title={'Westmead hotel map'}
+								width='450'
+								height='350'
+								src='https://www.openstreetmap.org/export/embed.html?bbox=-2.184562683105469%2C52.28706252904208%2C-1.7313766479492188%2C52.468141942250746&amp;layer=mapnik&amp;marker=52.37760250077664%2C-1.9578235500000574'></iframe>
+
+							<small>
+								<a href='https://www.openstreetmap.org/?mlat=52.3776&amp;mlon=-1.9578#map=13/52.3776/-1.9578'>
+									View Larger Map
+								</a>
+							</small>
+						</div>
 					</div>
 				</section>
 			</div>

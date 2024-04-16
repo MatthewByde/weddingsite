@@ -2,6 +2,7 @@ import { Button, Spinner, Toast } from 'flowbite-react';
 import React, { FormEvent } from 'react';
 import { FaTelegramPlane } from 'react-icons/fa';
 import { HiXMark } from 'react-icons/hi2';
+import { Link } from 'react-router-dom';
 
 type FormProps = {
 	children?: React.ReactNode;
@@ -11,6 +12,12 @@ type FormProps = {
 	onSubmit?: () => Promise<void>;
 	onDismissToast: () => void;
 	formNoValidate?: boolean;
+	PrivacyPolicy?:
+		| string
+		| ((props: {
+				showPrivacyModal: boolean;
+				setShowPrivacyModal: React.Dispatch<React.SetStateAction<boolean>>;
+		  }) => JSX.Element);
 };
 
 export default React.forwardRef<HTMLFormElement, FormProps>(function Form(
@@ -22,9 +29,11 @@ export default React.forwardRef<HTMLFormElement, FormProps>(function Form(
 		onSubmit = async () => {},
 		onDismissToast,
 		formNoValidate,
+		PrivacyPolicy,
 	}: FormProps,
 	ref
 ) {
+	const [showPrivacyModal, setShowPrivacyModal] = React.useState(false);
 	const [sending, setSending] = React.useState(false);
 
 	const onSubmitForm = React.useCallback(
@@ -47,7 +56,7 @@ export default React.forwardRef<HTMLFormElement, FormProps>(function Form(
 			<Button
 				type='submit'
 				formNoValidate={formNoValidate}
-				className='min-w-24 w-fit'
+				className='min-w-24 w-fit mt-4'
 				disabled={sending}>
 				{sending ? (
 					<>
@@ -58,6 +67,29 @@ export default React.forwardRef<HTMLFormElement, FormProps>(function Form(
 					<>{submitButtonText}</>
 				)}
 			</Button>
+			{typeof PrivacyPolicy === 'string' ? (
+				<small>
+					<Link
+						className='underline'
+						to={PrivacyPolicy}>
+						Click here to view our privacy policy
+					</Link>
+				</small>
+			) : PrivacyPolicy ? (
+				<small>
+					<p
+						className='hover:underline'
+						onClick={() => setShowPrivacyModal(true)}>
+						Click here to view our privacy policy
+					</p>
+					<PrivacyPolicy
+						showPrivacyModal={showPrivacyModal}
+						setShowPrivacyModal={setShowPrivacyModal}></PrivacyPolicy>
+				</small>
+			) : (
+				<></>
+			)}
+
 			{toastType === 'success' ? (
 				<Toast>
 					<FaTelegramPlane className='h-5 w-5 text-secondaryColor' />

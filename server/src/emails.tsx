@@ -35,7 +35,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendRSVPEmail(data: UpdateRSVPRequestBody) {
-	if (!data.email) {
+	if (!data.emailReceipt || !data.email) {
 		return;
 	}
 	const email = createRSVPEmail(data);
@@ -130,7 +130,7 @@ function createRSVPEmail(data: UpdateRSVPRequestBody) {
 }
 
 function RSVPEmail({ data }: { data: UpdateRSVPRequestBody }) {
-	const { ip, people, submitterName, allowSaveEmail, inviteId } = data;
+	const { people, submitterName, emailUpdates, inviteId, liftSpaces, needOrCanGiveLift, locationLift, ceremonyLift, liftEmailConsent } = data;
 
 	return (
 		<Html>
@@ -159,11 +159,16 @@ function RSVPEmail({ data }: { data: UpdateRSVPRequestBody }) {
 									key={i}
 									person={e}></RSVPEmailSection>
 							))}
+							{!needOrCanGiveLift || needOrCanGiveLift === 'none' ? <></> :
+							<>
+							<Text style={h3}>Lift arrangement</Text>
+							<Text style={mainText}>{`${needOrCanGiveLift === 'need' ? 'You would like a lift from ' : 'You could provide a lift from '}${ceremonyLift ? 'the ceremony to the reception' + (locationLift ? ' and ' : '') : ''}${locationLift ? `"${locationLift}" to the ceremony` : ''}, for ${liftSpaces} people. ${liftEmailConsent ? 'You gave consent for us to share your email address with someone who is looking for a lift, if we find you a match.' : ''}`}</Text>
+							</>}
 						</Section>
 						<Hr />
 						<Section style={lowerSection}>
 							<Text style={cautionText}>
-								{`The above RSVP was submitted at ${new Date().toISOString()} by ${submitterName} from ${ip}`}
+								{`The above RSVP was submitted at ${new Date().toISOString()} by ${submitterName}`}
 							</Text>
 						</Section>
 					</Section>
@@ -185,18 +190,24 @@ function RSVPEmail({ data }: { data: UpdateRSVPRequestBody }) {
 							contact us.
 						</Link>
 						{` ${
-							allowSaveEmail
+							emailUpdates
 								? 'If you are subscribed to our emails and you wish to unsubscribe, '
 								: ''
 						}`}
-						{allowSaveEmail && (
+						{emailUpdates && (
 							<Link
 								href={`https://matthewandadelewedding.co.uk/api/unsubscribe?id=${inviteId}`}
 								target='_blank'
 								style={link}>
-								click here.
+								{`click here. `}
 							</Link>
 						)}
+						<Link
+								href={`https://matthewandadelewedding.co.uk/privacy`}
+								target='_blank'
+								style={link}>
+								Privacy policy
+							</Link>
 					</Text>
 				</Container>
 			</Body>
@@ -213,7 +224,7 @@ function RSVPEmailSection({
 
 	return (
 		<>
-			<Heading style={h2}>{person.name ?? 'Unknown name'}</Heading>
+			<Heading style={h2}>{person.name?.displayName ?? 'Unknown name'}</Heading>
 			{isComing ? (
 				<>
 					<Text style={h3}>
@@ -356,7 +367,13 @@ function ContactFormEmail({
 							style={link}>
 							contact us
 						</Link>
-						.
+						{`. `}
+						<Link
+								href={`https://matthewandadelewedding.co.uk/privacy`}
+								target='_blank'
+								style={link}>
+								Privacy policy
+							</Link>
 					</Text>
 				</Container>
 			</Body>

@@ -32,7 +32,12 @@ async function main() {
             invitedToAfternoon: records[0].Afternoon === 'TRUE',
             people: records
                 .slice(0, nextIndex === -1 ? undefined : nextIndex)
-                .map((e) => ({ name: e.Name })),
+                .map((e) => ({
+                name: {
+                    displayName: e.Name,
+                    altNames: [e.AltName1, e.AltName2].filter((e) => e),
+                },
+            })),
         };
         try {
             const resp = await fetch(`${URL}/api/updatersvp`, {

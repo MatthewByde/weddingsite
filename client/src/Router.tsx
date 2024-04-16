@@ -10,6 +10,7 @@ import About from './routes/About';
 import Livestream from './routes/Livestream';
 import Photos from './routes/Photos';
 import Error404 from './routes/404';
+import PrivacyPage from './routes/PrivacyPolicy';
 
 export const routes = [
 	{ path: '/', element: <Home></Home> },
@@ -22,6 +23,7 @@ export const routes = [
 	{ path: '/about', element: <About></About> },
 	{ path: '/photos', element: <Photos></Photos> },
 	{ path: '/livestream', element: <Livestream></Livestream> },
+	{ path: '/privacy', element: <PrivacyPage></PrivacyPage> },
 	{ path: '*', element: <Error404></Error404> },
 ];
 

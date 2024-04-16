@@ -12,6 +12,7 @@ export const RSVP_SURNAME_MAXCHARS = 25;
 export const RSVP_FULLNAME_MAXCHARS = 51; //one for a space
 export const RSVP_DIETARY_MAXCHARS = 1000;
 export const RSVP_COMMENTS_MAXCHARS = 1000;
+export const RSVP_LOCATION_MAXCHARS = 500;
 
 export const UNKNOWN_GUEST_NAME = 'Additional guest (+1)';
 
@@ -45,7 +46,10 @@ export type RSVPStoredJSONSchema = {
 		submittedBy?: string;
 		invitedToAfternoon: boolean;
 		data: string;
-		peopleOnInvite: string[];
+		peopleOnInvite: {
+			displayName: string;
+			altNames: string[];
+		}[];
 		plusOnes?: number;
 	};
 };
@@ -55,12 +59,19 @@ export type RSVPRawJSONSchema = {
 		doNotEmail: boolean;
 		submittedBy?: string;
 		invitedToAfternoon: boolean;
-		peopleOnInvite: string[];
+		peopleOnInvite: {
+			displayName: string;
+			altNames: string[];
+		}[];
 		plusOnes?: number;
 		data: {
 			email?: string;
 			time?: string;
-			ip?: string;
+			liftSpaces?: number;
+			ceremonyLift?: boolean;
+			locationLift?: string;
+			needOrCanGiveLift?: 'need' | 'give' | 'none';
+			liftEmailConsent?: boolean;
 			people?: {
 				afternoon?: boolean;
 				evening?: boolean;
@@ -70,7 +81,10 @@ export type RSVPRawJSONSchema = {
 				noAlcohol?: boolean;
 				vegetarian?: boolean;
 				pescetarian?: boolean;
-				name: string;
+				name: {
+					displayName: string;
+					altNames: string[];
+				};
 			}[];
 		};
 	};
@@ -79,7 +93,8 @@ export type RSVPRawJSONSchema = {
 export type UpdateRSVPRequestBody = {
 	inviteId: string;
 	adminAuth?: string;
-	allowSaveEmail?: boolean;
+	emailUpdates?: boolean;
+	emailReceipt?: boolean;
 	submitterName?: string;
 	invitedToAfternoon?: boolean;
 	plusOnes?: number;
@@ -110,7 +125,10 @@ export type CheckRSVPRequestResponse<T extends ResponseType> = object &
 		? {
 				submittedBy?: string;
 				invitedToAfternoon: boolean;
-				peopleOnInvite: string[];
+				peopleOnInvite: {
+					displayName: string;
+					altNames: string[];
+				}[];
 				inviteId: string;
 				plusOnes?: number;
 		  }
