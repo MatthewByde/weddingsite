@@ -38,7 +38,26 @@ export default function Homepage() {
 				</Link>
 			</section>
 			<Divider orientation='horizontal'></Divider>
-			<section></section>
+			<section className='flex flex-col py-8 px-8 gap-2 text-textColor'>
+				<h1
+					className='text-darkAccentColor'
+					style={{
+						fontFamily: 'argue',
+						fontSize: 'min(max(1.875vw, 1.25rem), 1.875rem)',
+					}}>
+					On the day: Saturday 9th November
+				</h1>
+				<p className='text-lg'>11:30-12:00</p>
+				<p>Arrival at Monyhull Church</p>
+				<p className='text-lg'>12:00-13:00</p>
+				<p>Wedding ceremony at Monyhull Church</p>
+				<p className='text-lg'>13:00-14:00</p>
+				<p>Refreshments at Monyhull Church</p>
+				<p className='text-lg'>14:30-19:00</p>
+				<p>Afternoon reception at Westmead Hotel - by specific invite only</p>
+				<p className='text-lg'>19:00 - 01:00</p>
+				<p>Evening celebration at Westmead Hotel</p>
+			</section>
 		</PageWrapper>
 	);
 }
