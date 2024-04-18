@@ -119,7 +119,7 @@ export default function RSVP() {
 									<p className='pt-4'>
 										{`An RSVP response for your invitation has already been submitted by ${checkRsvpRequestResponse.submittedBy}. If you would like to check or modify your response, please `}
 										<Link
-											className='text-xl underline text-darkAccentColor'
+											className='underline text-darkAccentColor'
 											to={'/contact'}>
 											contact us
 										</Link>
@@ -148,7 +148,7 @@ export default function RSVP() {
 					appears on the envelope/email you received with your invitation.
 					Failing that, `}
 							<Link
-								className='text-xl underline text-darkAccentColor'
+								className='underline text-darkAccentColor'
 								to={'/contact'}>
 								contact us
 							</Link>

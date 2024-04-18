@@ -12,7 +12,12 @@ export default function GiftList() {
 					}}>
 					Gift Registry
 				</h1>
-				<p>Nothing to see here yet, please check back later on!</p>
+				<p>
+					Please don't feel obligated to buy us a wedding gift, however if you
+					did feel like you'd like to contribute towards us getting started in
+					our new home together, a gift regsitry will be provided here in due
+					course.
+				</p>
 			</section>
 		</PageWrapper>
 	);

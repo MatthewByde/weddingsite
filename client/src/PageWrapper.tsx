@@ -200,7 +200,7 @@ function NavBar({
 			</Sidebar.Items>
 			<Link
 				to='/about'
-				className='underline text-darkAccentColor'>
+				className='underline text-xs text-darkAccentColor'>
 				About
 			</Link>
 		</Sidebar>

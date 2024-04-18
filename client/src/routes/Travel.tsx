@@ -30,8 +30,7 @@ export default function Travel() {
 								</div>
 								<p>
 									The church is located a short distance off the A435, A441 and
-									A38, south of the city, and near to the M42 which connects to
-									the M40, M5, and M6.
+									A38, south of the city, and near to the M42.
 								</p>
 							</div>
 							<p className='text-xl pt-4'>Arriving by public transport?</p>
@@ -45,13 +44,10 @@ export default function Travel() {
 										at the junction with Earlswood Road, a 5 minute walk away.
 									</p>
 									<p>This stop is served by the 18, 35, and 46. </p>
+									<p>The 35 runs directly from the city centre.</p>
 									<p>
-										The 35 runs directly from the city centre every 12 minutes,
-										with a 40 minute journey time.
-									</p>
-									<p>
-										The 18 goes via Kings Norton Railway Station every 12
-										minutes, taking 6 minutes from there.
+										The 18 goes via Kings Norton Railway Station, taking 6
+										minutes from there.
 									</p>
 								</div>
 							</div>
@@ -66,9 +62,9 @@ export default function Travel() {
 									</div>
 								</div>
 								<p>
-									The nearest railway station is Kings Norton, on the cross city
-									line out of Birmingham New Street. The 18 bus runs from here
-									to near to the church.
+									The nearest railway station is Kings Norton, on a direct line
+									out of Birmingham New Street. The 18 bus runs from here to
+									near to the church.
 								</p>
 							</div>
 							<div className='flex gap-4 items-center'>
@@ -159,9 +155,9 @@ export default function Travel() {
 									</div>
 								</div>
 								<p>
-									The most convenient railway station is Longbridge, on the
-									cross city line out of Birmingham New Street. <br></br>Barnt
-									Green station is also nearby.
+									The most convenient railway station is Longbridge, on a direct
+									line out of Birmingham New Street. <br></br>Barnt Green
+									station is also nearby.
 								</p>
 							</div>
 							<div className='flex gap-4 items-center'>
@@ -200,7 +196,7 @@ export default function Travel() {
 										<a
 											className='underline text-darkAccentColor'
 											href='tel:012144512021'>
-											0121 445 12021
+											0121 445 1202
 										</a>
 										{` and quote group reference number BK144959.`}
 									</p>

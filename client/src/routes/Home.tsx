@@ -28,6 +28,10 @@ export default function Homepage() {
 						<p style={{ fontSize: 'min(max(3.75vw, 2rem), 3.75rem)' }}>
 							Matthew David Byde
 						</p>
+						<br></br>
+						<p style={{ fontSize: 'min(max(1.875vw, 1.25rem), 1.875rem)' }}>
+							09/11/2024
+						</p>
 					</h1>
 				</div>
 				<Link
@@ -38,25 +42,33 @@ export default function Homepage() {
 				</Link>
 			</section>
 			<Divider orientation='horizontal'></Divider>
-			<section className='flex flex-col py-8 px-8 gap-2 text-textColor'>
-				<h1
-					className='text-darkAccentColor'
+			<section className='flex flex-col py-8 px-8 gap-2 text-darkAccentColor'>
+				<p
 					style={{
 						fontFamily: 'argue',
-						fontSize: 'min(max(1.875vw, 1.25rem), 1.875rem)',
+						fontSize: 'min(max(1.25vw, 1rem), 1.5rem)',
 					}}>
-					On the day: Saturday 9th November
-				</h1>
-				<p className='text-lg'>11:30-12:00</p>
-				<p>Arrival at Monyhull Church</p>
-				<p className='text-lg'>12:00-13:00</p>
-				<p>Wedding ceremony at Monyhull Church</p>
-				<p className='text-lg'>13:00-14:00</p>
-				<p>Refreshments at Monyhull Church</p>
-				<p className='text-lg'>14:30-19:00</p>
-				<p>Afternoon reception at Westmead Hotel - by specific invite only</p>
-				<p className='text-lg'>19:00 - 01:00</p>
-				<p>Evening celebration at Westmead Hotel</p>
+					12:00-13:00 - Wedding ceremony at Monyhull Church
+				</p>
+				<p className='text-textColor'>{`Arrival from 11:30`}</p>
+				<p className='text-textColor'>{`Refreshments to follow`}</p>
+				<p
+					className='pt-4'
+					style={{
+						fontFamily: 'argue',
+						fontSize: 'min(max(1.25vw, 1rem), 1.5rem)',
+					}}>
+					14:30-18:00 - Wedding breakfast at Westmead Hotel
+				</p>
+				<p className='text-textColor'>{`The wedding breakfast is by specific invitation only`}</p>
+				<p
+					className='pt-4'
+					style={{
+						fontFamily: 'argue',
+						fontSize: 'min(max(1.25vw, 1rem), 1.5rem)',
+					}}>
+					19:00 until late - Evening celebration at Westmead Hotel
+				</p>
 			</section>
 		</PageWrapper>
 	);

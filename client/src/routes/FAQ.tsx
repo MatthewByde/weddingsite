@@ -10,18 +10,18 @@ const questions: QuestionType[] = [
 	{
 		question: 'Is there a dress code?',
 		answer:
-			"There is not a specific dress code, please just wear clothes suitable for the formal occasion that is a wedding - and don't wear a white dress!",
+			'There is no specific dress code, please wear clothes that you feel comfortable in and are suitable for a wedding (hats not required) - and please avoid wearing white so as to avoid upstaging the bride.',
 	},
 	{
 		question: 'Is there car parking available?',
 		answer:
-			'Yes, there is free parking available at both Monyhull Church and Westmead Hotel.',
+			'Some car parking space is available at Monyhull Church, but it may be limited on the day - if this runs out you may have to park on a nearby road instead. There is parking available at Westmead Hotel.',
 	},
 	{
 		question: 'How can I see or change my RSVP response?',
 		answer: (
 			<span>
-				{`For security reasons, you cannot view or edit even your own response online, sorry! If you provided your email address, you will have been sent a receipt with your responses - otherwise, to view or change your response, please `}
+				{`For security reasons, you cannot view or edit even your own response online, sorry! If you requested it, you will have been sent a receipt with your responses - otherwise, to view or change your response, please `}
 				<Link
 					to='/contact'
 					className='underline text-darkAccentColor'>
@@ -49,7 +49,7 @@ const questions: QuestionType[] = [
 		question: 'Can I bring my children?',
 		answer: (
 			<span>
-				{`Unfortunately, due to cost and capacity constraints, we have decided only to invite children of specific very close family members. If they are invited, you will be asked to provide their details when you `}
+				{`Unfortunately, due to cost and capacity constraints, we have decided only to invite children of select very close family members. If they are invited, you will be asked to provide their details when you `}
 				<Link
 					to='/rsvp'
 					className='underline text-darkAccentColor'>

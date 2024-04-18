@@ -90,7 +90,7 @@ export default function Contact() {
 				<p>
 					{'First, check if your question is answered by our '}
 					<Link
-						className='text-xl underline text-darkAccentColor'
+						className='text-base underline text-darkAccentColor'
 						to={'/faq'}>
 						FAQs
 					</Link>
