@@ -21,7 +21,7 @@ const questions: QuestionType[] = [
 		question: 'How can I see or change my RSVP response?',
 		answer: (
 			<span>
-				{`For security reasons, you cannot view or edit even your own response online, sorry! If you requested it, you will have been sent a receipt with your responses - otherwise, to view or change your response, please `}
+				{`For security reasons, you cannot view or edit your response online. If you requested it, you will have been sent a receipt which you can refer back to to see your responses. To view or change your response, please `}
 				<Link
 					to='/contact'
 					className='underline text-darkAccentColor'>
@@ -32,10 +32,10 @@ const questions: QuestionType[] = [
 		),
 	},
 	{
-		question: 'Can I bring a +1?',
+		question: 'Can I bring a plus one?',
 		answer: (
 			<span>
-				{`Unfortunately, due to cost and capacity constraints, most people are not allowed to bring a +1. If you are permitted to, you will be asked to provide their details when you `}
+				{`Unfortunately, due to cost and capacity constraints, most people are not allowed to bring a plus one. If you are permitted to bring an additional guest, you will be asked to provide their details when you `}
 				<Link
 					to='/rsvp'
 					className='underline text-darkAccentColor'>
@@ -49,25 +49,19 @@ const questions: QuestionType[] = [
 		question: 'Can I bring my children?',
 		answer: (
 			<span>
-				{`Unfortunately, due to cost and capacity constraints, we have decided only to invite children of select very close family members. If they are invited, you will be asked to provide their details when you `}
-				<Link
-					to='/rsvp'
-					className='underline text-darkAccentColor'>
-					RSVP
-				</Link>
-				.
+				{`Unfortunately, due to cost and capacity constraints, we have decided only to invite children of select immediate family members.`}
 			</span>
 		),
 	},
 	{
 		question: "I can't make it, will it be livestreamed?",
 		answer:
-			'Yes! The wedding ceremony at Monyhull Church will be livestreamed, and will be made available to watch online afterwards. Details on how to access the livestream/recording will be added to the website closer to the time.',
+			'Yes! The wedding ceremony at Monyhull Church will be available to be watched both live and afterwards. Details on how to access the livestream/recording will be added to the website in due course.',
 	},
 	{
 		question: 'Can I take photos?',
 		answer:
-			'Yes! Please do, and share them with us afterwards! A photography page and upload link will be added to the website closer to the time.',
+			"Yes, you are welcome to take photos throughout the day. However, please be mindful that we will also have a professional photographer present to capture our day, and particularly during the ceremony we would prefer that your attention is on enjoying the moment. We'd love you to share your photos with us afterwards, a photography page and upload link will be added to the website in due course.",
 	},
 	{
 		question: 'Can you recommend anywhere to stay in the local area?',
@@ -79,7 +73,7 @@ const questions: QuestionType[] = [
 					className='underline text-darkAccentColor'>
 					travel page
 				</Link>
-				{` for more information. Otherwise, Birmingham is home to a very large number of hotels - `}
+				{` for more information. Otherwise, Birmingham is home to a large number of hotels - `}
 				<a
 					className='underline text-darkAccentColor'
 					href={`https://www.google.co.uk/travel/search?q=hotels%20near%20b48%207al&ved=0CAAQ5JsGahgKEwiIsaOc4qOFAxUAAAAAHQAAAAAQ0gE&ts=CAEaOAoaEhYKCy9nLzF2aGx4bW00OgdCNDggN2FsGgASGhIUCgcI6A8QCxgIEgcI6A8QCxgKGAIyAggBKgkKBToDR0JQGgA&qs=CAEgACgAOA1IAA&ap=KigKEgkPO0ektyRKQBHDcvbOOrkAwBISCXlhs5inO0pAEYbl7J3dLfy_MAE`}>
@@ -125,7 +119,7 @@ export default function FAQ() {
 function Question({ question, answer }: QuestionType) {
 	return (
 		<section className='flex flex-col pb-8'>
-			<h2 className='text-3xl'>{question}</h2>
+			<h2 className='text-3xl pb-1'>{question}</h2>
 			<p>{answer}</p>
 		</section>
 	);

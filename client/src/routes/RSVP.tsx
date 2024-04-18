@@ -145,7 +145,7 @@ export default function RSVP() {
 
 						<p className='pt-4'>
 							{`If you're having issues, please try entering your name exactly as it
-					appears on the envelope/email you received with your invitation.
+					appears on the invitation/email you received with your invitation.
 					Failing that, `}
 							<Link
 								className='underline text-darkAccentColor'
@@ -838,7 +838,7 @@ function RSVPFormSection({
 									});
 								}}
 							/>
-							<Label htmlFor={`accept${index}`}>Excitedly accepts!</Label>
+							<Label htmlFor={`accept${index}`}>Joyfully accepts!</Label>
 						</div>
 						<div className='flex items-center gap-2'>
 							<Checkbox
@@ -1179,26 +1179,29 @@ function FoodInformationModal({
 				<div className='space-y-6 p-6 [&_p]:text-base [&_p]:leading-relaxed [&_p]:text-textColor '>
 					{invitedToAfternoon && (
 						<>
-							<h1 className='text-2xl'>Afternoon reception</h1>
+							<h1 className='text-2xl'>Wedding breakfast</h1>
 							<p>
-								Those with no dietary requirements will receive the same
-								3-course meal. All vegetarians will be served the same
-								vegetarian 3-course meal. Pescetarians may receive a mixture of
-								both menus. Any other dietary requirements will be catered for
-								separately.
+								The bride and groom have selected a 3-course menu for their
+								guests to enjoy. This standard menu will be served to all guests
+								aside from those with specified dietary requirements. It will be
+								added to the FAQs page in due course. Dietary requirements will
+								be catered for separately. If you have concerns about the food
+								that will be served, please contact Adele or Matthew.
 							</p>
 							<p>
 								A glass of wine will be served with the meal, and an alcoholic
-								beverage will be provided on arrival and for the toast. A bar
+								beverage will be provided on arrival and for the toast.{' '}
+								{/*A bar
 								will probably be available throughout so you can purchase your
-								own drinks.
+								own drinks. */}
 							</p>
 						</>
 					)}
 					<h1 className='text-2xl'>Evening reception</h1>
 					<p>
-						A buffet will be provided, which will include some vegetarian food.
-						Other dietary requirements can be catered for separately.
+						A buffet will be provided, which will consist of a selection of
+						finger food, including some vegetarian food. Other dietary
+						requirements can be catered for separately.
 					</p>
 					<p>
 						In addition, a bar will be available throughout so you can purchase
