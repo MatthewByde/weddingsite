@@ -145,7 +145,7 @@ export default function RSVP() {
 
 						<p className='pt-4'>
 							{`If you're having issues, please try entering your name exactly as it
-					appears on the envelope/email you received with your invitation (including your title as part of your first name).
+					appears on the envelope/email you received with your invitation.
 					Failing that, `}
 							<Link
 								className='text-xl underline text-darkAccentColor'
@@ -227,7 +227,7 @@ function RSVPForm({
 	const [ceremonyLift, setCeremonyLift] = React.useState(
 		stored?.ceremonyLift ?? false
 	);
-	const [location, setLocation] = React.useState(stored ? stored.location : '');
+	const [location, setLocation] = React.useState(stored?.location ?? '');
 	const [locationLift, setLocationLift] = React.useState(
 		stored?.locationLift ?? false
 	);
@@ -252,7 +252,6 @@ function RSVPForm({
 	const formRef = React.useRef<HTMLFormElement>(null);
 
 	React.useEffect(() => {
-		console.log(rsvpFormData);
 		setRsvpFormData((c) => {
 			const data = [...c];
 			data.forEach((item) => {
@@ -282,6 +281,7 @@ function RSVPForm({
 				liftNumbers: liftNumbers,
 				location: location,
 				locationLift: locationLift,
+				emailReceipt: emailReceipt,
 			} as StoredFormData)
 		);
 	}, [
@@ -297,6 +297,7 @@ function RSVPForm({
 		locationLift,
 		rsvpFormData,
 		statuses,
+		emailReceipt,
 	]);
 
 	React.useEffect(() => {
@@ -705,10 +706,6 @@ function RSVPForm({
 		</>
 	);
 }
-
-//TODO test updated form
-//TODO update all wording
-//TODO add info to homepage incl. date
 
 function RSVPFormSection({
 	index,
