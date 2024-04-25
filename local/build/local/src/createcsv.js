@@ -2,6 +2,10 @@ import { b642uint8array, getNonce } from '../../client/src/Utils.js';
 import { readFileSync, writeFileSync } from 'fs';
 import libsodium from 'libsodium-wrappers';
 import { stringify } from 'csv-stringify/sync';
+const local = false;
+const url = local
+    ? 'http://localhost:8080'
+    : 'https://matthewandadelewedding.co.uk';
 async function main() {
     const sk = readFileSync('../../sk');
     const pk = readFileSync('../server/build/server/src/assets/pk');
@@ -11,9 +15,9 @@ async function main() {
     };
     try {
         const requestBody = {
-            nonce: await getNonce(keys, 'http://localhost:8080/api/auth'),
+            nonce: await getNonce(keys, `${url}/api/auth`),
         };
-        const resp = await fetch('http://localhost:8080/api/getrsvp', {
+        const resp = await fetch(`${url}/api/getrsvp`, {
             method: 'POST',
             body: JSON.stringify(requestBody),
             headers: {

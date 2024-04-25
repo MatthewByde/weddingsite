@@ -259,8 +259,11 @@ function RSVPEmailSection({
 							<>No dietary requirements</>
 						)}
 					</Text>
-					<Text style={h3}>Would like orange juice in place of alcohol?</Text>
-					<Text style={mainText}>{person.noAlcohol ? 'Yes' : 'No'}</Text>
+					{person.afternoon && <>
+						<Text style={h3}>Would like orange juice in place of alcohol?</Text>
+						<Text style={mainText}>{person.noAlcohol ? 'Yes' : 'No'}</Text>
+						</>
+					}
 					<Text style={h3}>Additional comments</Text>
 					<Text style={mainText}>{person.comments}</Text>
 				</>

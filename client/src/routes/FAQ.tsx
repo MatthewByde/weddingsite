@@ -119,7 +119,7 @@ export default function FAQ() {
 function Question({ question, answer }: QuestionType) {
 	return (
 		<section className='flex flex-col pb-8'>
-			<h2 className='text-3xl pb-1'>{question}</h2>
+			<h2 className='text-3xl pb-2'>{question}</h2>
 			<p>{answer}</p>
 		</section>
 	);

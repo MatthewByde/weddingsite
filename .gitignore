@@ -5,3 +5,4 @@ confidential.json
 *.log
 rsvp.json
 *.csv
+adminactions.*
