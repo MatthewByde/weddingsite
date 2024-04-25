@@ -49,7 +49,7 @@ const questions: QuestionType[] = [
 		question: 'Can I bring my children?',
 		answer: (
 			<span>
-				{`Unfortunately, due to cost and capacity constraints, we have decided only to invite children of select immediate family members.`}
+				{`Children are welcome at the wedding ceremony, but unfortunately, due to cost and capacity constraints, we have decided only to invite children of select immediate family members to the reception.`}
 			</span>
 		),
 	},
