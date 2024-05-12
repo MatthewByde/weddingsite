@@ -49,7 +49,7 @@ const questions: QuestionType[] = [
 		question: 'Can I bring my children?',
 		answer: (
 			<span>
-				{`All children are welcome at the wedding ceremony at the church. In addition, 0-3s who do not require a meal (such as if breastfeeding or on baby food) are welcome at the reception at the hotel. Unfortunately, other than that, due to cost constraints, we have decided only to invite children of select immediate family members to the reception. If you are planning to bring a baby to the reception, please let us know!`}
+				{`At the wedding ceremony at the church, children are welcome. In addition, 0-3s who do not require a meal (such as if breastfeeding or on baby food) are welcome at the reception at the hotel. Unfortunately, other than that, due to cost constraints, we have decided only to invite children of select immediate family members to the reception. If you are planning to bring a baby to the reception, please let us know!`}
 			</span>
 		),
 	},
