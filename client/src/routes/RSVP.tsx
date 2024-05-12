@@ -1190,10 +1190,9 @@ function FoodInformationModal({
 							</p>
 							<p>
 								A glass of wine will be served with the meal, and an alcoholic
-								beverage will be provided on arrival and for the toast.{' '}
-								{/*A bar
-								will probably be available throughout so you can purchase your
-								own drinks. */}
+								beverage will be provided on arrival and for the toast. A bar
+								will be available throughout so you can purchase your own
+								drinks.
 							</p>
 						</>
 					)}
