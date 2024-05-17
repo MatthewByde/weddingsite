@@ -119,8 +119,9 @@ function RSVPEmailSection({ person, }) {
                     React.createElement("br", null)))),
             React.createElement(Text, { style: h3 }, "Dietary requirements:"),
             React.createElement(Text, { style: mainText }, person.vegetarian ? (React.createElement(React.Fragment, null, "Vegetarian")) : person.pescetarian ? (React.createElement(React.Fragment, null, "Pescetarian")) : person.dietary ? (React.createElement(React.Fragment, null, person.dietary)) : (React.createElement(React.Fragment, null, "No dietary requirements"))),
-            React.createElement(Text, { style: h3 }, "Would like orange juice in place of alcohol?"),
-            React.createElement(Text, { style: mainText }, person.noAlcohol ? 'Yes' : 'No'),
+            person.afternoon && React.createElement(React.Fragment, null,
+                React.createElement(Text, { style: h3 }, "Would like orange juice in place of alcohol?"),
+                React.createElement(Text, { style: mainText }, person.noAlcohol ? 'Yes' : 'No')),
             React.createElement(Text, { style: h3 }, "Additional comments"),
             React.createElement(Text, { style: mainText }, person.comments))) : (React.createElement(React.Fragment, null,
             React.createElement(Text, { style: mainText }, "You regretfully declined the invitation.")))));
