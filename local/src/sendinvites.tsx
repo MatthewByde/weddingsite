@@ -128,7 +128,7 @@ function InviteEmail({
 					<Section>
 						<Text style={text}>{`Dear ${name},`}</Text>
 					</Section>
-<span style={{color: '#ffffff'}}>"Together with their families, Adele Georgia Butcher & Matthew David Byde invite you to share in their wedding day, Saturday 09 November 2024 at 12 O'clock, Monyhull Church, St Francis Drive, Birmingham, B30 3PS"</span>
+<span style={{color: '#ffffff', opacity: 0}}>"Together with their families, Adele Georgia Butcher & Matthew David Byde invite you to share in their wedding day, Saturday 09 November 2024 at 12 O'clock, Monyhull Church, St Francis Drive, Birmingham, B30 3PS"</span>
 					<Section
 						align='center'
 						style={{ maxWidth: '700px' }}>
@@ -145,7 +145,7 @@ function InviteEmail({
 							</Link>
 						</Row>
                             
-                             <span style={{color: '#ffffff'}}>{`Details. Monyhull Church: Wedding ceremony - 12:00, arrive from 11:30. Monyhull Church, St Francis Drive, Birmingham, B30 3PS. Westmead Hotel: ${
+                             <span style={{color: '#ffffff', opacity: 0}}>{`Details. Monyhull Church: Wedding ceremony - 12:00, arrive from 11:30. Monyhull Church, St Francis Drive, Birmingham, B30 3PS. Westmead Hotel: ${
 										afternoon ? 'Wedding Breakfast - 14:30, ' : ''
 									}Evening Celebration - 19:00. Westmead Hotel, Redditch Road, Hopwood, Birmingham, B48 7AL. If you wish to reserve a room for the night of the wedding at a discounted rate, call the hotel directly on 012144512021 and quote group reference number BK144959.`}</span>
 						<Row align='center'>
@@ -161,14 +161,14 @@ function InviteEmail({
 								/>
 							</Link>
 						</Row>
-                  <span style={{color: '#ffffff'}}>"RSVP. Please RSVP via our wedding website - go to matthew and adele wedding dot co dot uk . Alternatively, RSVP by phone: Adele - zero seven nine three eight zero five one seven nine three. Matthew - zero seven five five one one six nine one six six. Please respond by June 14th."</span>
+                  <span style={{color: '#ffffff', opacity: 0}}>"RSVP. Please RSVP via our wedding website - go to matthew and adele wedding dot co dot uk . Alternatively, RSVP by phone: Adele - zero seven nine three eight zero five one seven nine three. Matthew - zero seven five five one one six nine one six six. Please respond by August 20th."</span>
 						<Row align='center'>
 							<Link
 								href='https://matthewandadelewedding.co.uk'
 								target='_blank'>
 								<Img
 									src={'cid:rsvp'}
-									alt='RSVP. Please RSVP via our wedding website - go to matthewandadelewedding.co.uk . Alternatively, RSVP by phone: Adele - 07938051793. Matthew - 07551169166. Please respond by June 14th.'
+									alt='RSVP. Please RSVP via our wedding website - go to matthewandadelewedding.co.uk . Alternatively, RSVP by phone: Adele - 07938051793. Matthew - 07551169166. Please respond by August 20th.'
 									width='100%'
 								/>
 							</Link>

@@ -173,7 +173,7 @@ function NavBar({
 						RSVP
 					</Sidebar.Item>
 					<Sidebar.Item
-						to='/registry'
+						to='https://www.marriagegiftlist.com/D66PZ8'
 						icon={Icons.HiGift}
 						as={Link}>
 						Gift registry

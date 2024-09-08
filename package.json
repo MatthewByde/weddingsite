@@ -1,6 +1,7 @@
 {
 	"scripts": {
-		"dev": "(cd server && nodemon -e ts,tsx --exec \"tsc --build && node build/server/src/app.js\" &) && (cd client && npm run startclient &)",
+		"dev1": "cd server && nodemon -e ts,tsx --exec \"tsc --build && node build/server/src/app.js\"",
+		"dev2": " cd client && npm run startclient",
 		"build": "cd server && tsc --build && cd ../client && npm run buildclient && rm -rf ../server/static && mv build ../server/static && git checkout -b deploy && git add ../server/static && git add ../server/build && git commit -m \"deploy\" && git push --force --set-upstream origin deploy && git checkout - && git branch -D deploy"
 	},
 	"devDependencies": {

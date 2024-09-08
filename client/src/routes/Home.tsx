@@ -34,12 +34,20 @@ export default function Homepage() {
 						</p>
 					</h1>
 				</div>
+				<div className='flex gap-4'>
 				<Link
 					style={{ fontFamily: 'argue' }}
-					to='/rsvp'
+					to='/RSVP'
 					className='text-2xl font-semibold w-80 h-20 border-0 px-0 py-0 justify-center items-center rounded-lg text-backgroundColor hover:bg-darkAccentColor bg-secondaryColor flex [&_span]:px-2 [&_span]:py-2 transition'>
 					RSVP
 				</Link>
+				<Link
+					style={{ fontFamily: 'argue' }}
+					to='https://www.marriagegiftlist.com/D66PZ8'
+					className='text-2xl font-semibold w-80 h-20 border-0 px-0 py-0 justify-center items-center rounded-lg text-backgroundColor hover:bg-darkAccentColor bg-secondaryColor flex [&_span]:px-2 [&_span]:py-2 transition'>
+					Gift Registry
+				</Link>
+				</div>
 			</section>
 			<Divider orientation='horizontal'></Divider>
 			<section className='flex flex-col py-8 px-8 gap-2 text-darkAccentColor'>
