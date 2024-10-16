@@ -37,9 +37,9 @@ export default function Homepage() {
 				<div className='flex gap-4'>
 				<Link
 					style={{ fontFamily: 'argue' }}
-					to='/RSVP'
+					to='https://photos.app.goo.gl/fHT7BTd5s69JLFwP6'
 					className='text-2xl font-semibold w-80 h-20 border-0 px-0 py-0 justify-center items-center rounded-lg text-backgroundColor hover:bg-darkAccentColor bg-secondaryColor flex [&_span]:px-2 [&_span]:py-2 transition'>
-					RSVP
+					Share your photos
 				</Link>
 				<Link
 					style={{ fontFamily: 'argue' }}
@@ -47,6 +47,13 @@ export default function Homepage() {
 					className='text-2xl font-semibold w-80 h-20 border-0 px-0 py-0 justify-center items-center rounded-lg text-backgroundColor hover:bg-darkAccentColor bg-secondaryColor flex [&_span]:px-2 [&_span]:py-2 transition'>
 					Gift Registry
 				</Link>
+				<Link
+					style={{ fontFamily: 'argue' }}
+					to='/livestream'
+					className='text-2xl font-semibold w-80 h-20 border-0 px-0 py-0 justify-center items-center rounded-lg text-backgroundColor hover:bg-darkAccentColor bg-secondaryColor flex [&_span]:px-2 [&_span]:py-2 transition'>
+					Livestream
+				</Link>
+				
 				</div>
 			</section>
 			<Divider orientation='horizontal'></Divider>

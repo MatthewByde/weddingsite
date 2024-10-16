@@ -167,16 +167,22 @@ function NavBar({
 						Home
 					</Sidebar.Item>
 					<Sidebar.Item
-						to='/rsvp'
-						icon={Icons.HiEnvelope}
-						as={Link}>
-						RSVP
-					</Sidebar.Item>
-					<Sidebar.Item
 						to='https://www.marriagegiftlist.com/D66PZ8'
 						icon={Icons.HiGift}
 						as={Link}>
 						Gift registry
+					</Sidebar.Item>
+					<Sidebar.Item
+						to='/livestream'
+						icon={Icons.HiVideoCamera}
+						as={Link}>
+						Livestream
+					</Sidebar.Item>
+					<Sidebar.Item
+						to='https://photos.app.goo.gl/fHT7BTd5s69JLFwP6'
+						icon={Icons.HiCamera}
+						as={Link}>
+						Share photos
 					</Sidebar.Item>
 					<Sidebar.Item
 						to='/travel'

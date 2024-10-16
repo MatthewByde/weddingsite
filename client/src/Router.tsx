@@ -8,7 +8,6 @@ import Travel from './routes/Travel';
 import Login from './routes/Login';
 import About from './routes/About';
 import Livestream from './routes/Livestream';
-import Photos from './routes/Photos';
 import Error404 from './routes/404';
 import PrivacyPage from './routes/PrivacyPolicy';
 
@@ -21,7 +20,6 @@ export const routes = [
 	{ path: '/faq', element: <FAQ></FAQ> },
 	{ path: '/login', element: <Login></Login> },
 	{ path: '/about', element: <About></About> },
-	{ path: '/photos', element: <Photos></Photos> },
 	{ path: '/livestream', element: <Livestream></Livestream> },
 	{ path: '/privacy', element: <PrivacyPage></PrivacyPage> },
 	{ path: '*', element: <Error404></Error404> },

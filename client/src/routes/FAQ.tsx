@@ -61,7 +61,7 @@ const questions: QuestionType[] = [
 	{
 		question: 'Can I take photos?',
 		answer:
-			"Yes, you are welcome to take photos throughout the day. However, please be mindful that we will also have a professional photographer present to capture our day, and particularly during the ceremony we would prefer that your attention is on enjoying the moment. We'd love you to share your photos with us afterwards, a photography page and upload link will be added to the website in due course.",
+			(<span>{`Yes, you are welcome to take photos throughout the day. However, please be mindful that we will also have a professional photographer present to capture our day, and particularly during the ceremony we would prefer that your attention is on enjoying the moment. We'd love you to share your photos with us afterwards, you can do so here: `}<Link to='https://photos.app.goo.gl/fHT7BTd5s69JLFwP6' className='underline text-darkAccentColor'>https://photos.app.goo.gl/fHT7BTd5s69JLFwP6</Link></span>),
 	},
 	{
 		question: 'Can you recommend anywhere to stay in the local area?',

@@ -21,7 +21,7 @@ export default function Travel() {
 					<h2 className='text-3xl'>Monyhull Church</h2>
 					<div className='flex gap-4 flex-wrap'>
 						<div className='flex flex-col gap-2 max-w-2xl'>
-							<p>St Francis Drive, Birmingham, Kings Norton, B30 3PS</p>
+							<p>St Francis Drive, Kings Norton, Birmingham, B30 3PS</p>
 
 							<p className='text-xl pt-4'>Arriving by car?</p>
 							<div className='flex gap-4 items-center'>
