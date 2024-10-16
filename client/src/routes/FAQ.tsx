@@ -56,7 +56,7 @@ const questions: QuestionType[] = [
 	{
 		question: "I can't make it, will it be livestreamed?",
 		answer:
-			'Yes! The wedding ceremony at Monyhull Church will be available to be watched both live and afterwards. Details on how to access the livestream/recording will be added to the website in due course.',
+			(<span>{`Yes! The wedding ceremony at Monyhull Church will be available to be watched both live and afterwards, please see the livestream page `} <Link to='/livestream' className='underline text-darkAccentColor'>here</Link></span>)
 	},
 	{
 		question: 'Can I take photos?',
