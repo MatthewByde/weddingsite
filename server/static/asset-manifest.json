@@ -1,16 +1,18 @@
 {
   "files": {
-    "main.css": "/static/css/main.afbaf11d.css",
-    "main.js": "/static/js/main.abab646d.js",
+    "main.css": "/static/css/main.4735b25c.css",
+    "main.js": "/static/js/main.748c124d.js",
     "static/media/bg.jpg": "/static/media/bg.d4dccc5dc3c3f7e9157f.jpg",
     "static/media/banner.png": "/static/media/banner.014f4fc39a55d2e48410.png",
+    "static/media/uber_icon.png": "/static/media/uber_icon.3107d56ae40e98d58318.png",
+    "static/media/Bolt_logo.png": "/static/media/Bolt_logo.f0f9f82fd01e4e1c93fc.png",
     "static/media/argue.otf": "/static/media/argue.733f15141713bea0fc54.otf",
     "index.html": "/index.html",
-    "main.afbaf11d.css.map": "/static/css/main.afbaf11d.css.map",
-    "main.abab646d.js.map": "/static/js/main.abab646d.js.map"
+    "main.4735b25c.css.map": "/static/css/main.4735b25c.css.map",
+    "main.748c124d.js.map": "/static/js/main.748c124d.js.map"
   },
   "entrypoints": [
-    "static/css/main.afbaf11d.css",
-    "static/js/main.abab646d.js"
+    "static/css/main.4735b25c.css",
+    "static/js/main.748c124d.js"
   ]
 }
