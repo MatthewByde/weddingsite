@@ -13,14 +13,11 @@ export default function Livestream() {
 					Livestream
 				</h1>
 				<section>
-					<h2 className='text-3xl'>The livestream will appear here on the wedding day.</h2>
+					<h2 className='text-3xl'><Link className='underline text-darkAccentColor' to='https://www.youtube.com/live/idKKFoJmqKc'>If the video player below is not working, click here to watch it on YouTube</Link></h2>
 					<br></br>
-						<Link
-					style={{ fontFamily: 'argue' }}
-					to='/'
-					className='text-xl font-semibold w-40 h-10 border-0 px-0 py-0 justify-center items-center rounded-lg text-backgroundColor hover:bg-darkAccentColor bg-secondaryColor flex [&_span]:px-2 [&_span]:py-2 transition'>
-					Home
-				</Link>
+					<iframe width="854" height="480" src="https://www.youtube-nocookie.com/embed/idKKFoJmqKc?si=CJnQh0itHrRCX9RD" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerPolicy="strict-origin-when-cross-origin" allowFullScreen></iframe>
+					<br></br>
+					<h2 className='text-xl'>If you're here after the event looking for the recording and it's not here, please come back in a couple of weeks once we're back from honeymoon!</h2>
 				</section>
 		</div>
 		</PageWrapper>;
